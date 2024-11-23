@@ -203,8 +203,6 @@ func (db DefaultBody) GetIssues(state State) []string {
 	case VideoReallyMissing:
 		if db.UsefulWithoutVideo {
 			issues = append(issues, "main video is NOT REALLY missing (Remove the useful-without-video tag?")
-		} else {
-			issues = append(issues, "main video is NOT REALLY missing")
 		}
 	case VideoMissing:
 		if !db.RelatedVideos.Has(Alternative, DeepDive, FullCourse) && !db.UsefulWithoutVideo {
