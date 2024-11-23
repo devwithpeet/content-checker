@@ -22,31 +22,28 @@ const (
 	VersionCommand Command = "version"
 )
 
-func args() (Command, string, map[pkg.State]struct{}, bool, bool, bool, string, int) {
+func getArgs(args []string) (Command, string, map[pkg.State]struct{}, bool, bool, bool, string, int) {
+	var err error
+
 	action := PrintCommand
-	if len(os.Args) > 1 {
-		action = Command(os.Args[1])
+	if len(args) > 1 {
+		action = Command(args[1])
 	}
 
-	root := "."
-	if len(os.Args) > 2 {
-		root = os.Args[2]
-	}
-
-	statesAllowed := map[pkg.State]struct{}{
-		pkg.Complete:   {},
-		pkg.Incomplete: {},
-		pkg.Stub:       {},
-	}
+	statesAllowed := map[pkg.State]struct{}{}
 
 	verbose := false
 	printIndex := false
 	printNonIndex := true
+	rootFound := false
+	root := "."
 	courseWanted := ""
 	maxErrors := defaulMaxErrors
 
-	if len(os.Args) > 3 {
-		for i, arg := range os.Args[3:] {
+	if len(args) > 2 {
+		for i := 2; i < len(args); i++ {
+			arg := args[i]
+
 			switch arg {
 			case "--without-non-index", "-without-non-index":
 				printNonIndex = false
@@ -55,11 +52,16 @@ func args() (Command, string, map[pkg.State]struct{}, bool, bool, bool, string, 
 			case "--verbose", "-verbose":
 				verbose = true
 			case "--max-errors", "-max-errors":
-				if len(os.Args) <= i+1 {
+				if len(args) <= i+1 {
 					panic("missing value for --max-errors")
 				}
 
-				maxErrors, _ = strconv.Atoi(os.Args[i+1])
+				maxErrors, err = strconv.Atoi(args[i+1])
+				if err != nil {
+					panic(err)
+				}
+
+				i++
 			case "complete":
 				statesAllowed = map[pkg.State]struct{}{
 					pkg.Complete: {},
@@ -74,8 +76,21 @@ func args() (Command, string, map[pkg.State]struct{}, bool, bool, bool, string, 
 				}
 
 			default:
-				courseWanted = arg
+				if !rootFound {
+					root = arg
+					rootFound = true
+				} else {
+					courseWanted = arg
+				}
 			}
+		}
+	}
+
+	if len(statesAllowed) == 0 {
+		statesAllowed = map[pkg.State]struct{}{
+			pkg.Complete:   {},
+			pkg.Incomplete: {},
+			pkg.Stub:       {},
 		}
 	}
 
@@ -83,7 +98,7 @@ func args() (Command, string, map[pkg.State]struct{}, bool, bool, bool, string, 
 }
 
 func main() {
-	action, root, statesAllowed, verbose, printIndex, printNonIndex, courseWanted, maxErrors := args()
+	action, root, statesAllowed, verbose, printIndex, printNonIndex, courseWanted, maxErrors := getArgs(os.Args)
 
 	// collect markdown files
 	files, err := findFiles(root, courseWanted, verbose)
