@@ -52,7 +52,7 @@ func Test_getArgs(t *testing.T) {
 			wantMaxErrors:     -1,
 		},
 		{
-			name:              "print .",
+			name:              "print hello",
 			args:              []string{"", "print", "hello"},
 			wantCommand:       PrintCommand,
 			wantPath:          "hello",
@@ -64,10 +64,10 @@ func Test_getArgs(t *testing.T) {
 			wantMaxErrors:     -1,
 		},
 		{
-			name:              "print . --verbose",
-			args:              []string{"", "print", ".", "--verbose"},
+			name:              "print hello --verbose",
+			args:              []string{"", "print", "hello", "--verbose"},
 			wantCommand:       PrintCommand,
-			wantPath:          ".",
+			wantPath:          "hello",
 			wantStatesAllowed: defaultStatesAllowed,
 			wantVerbose:       true,
 			wantPrintIndex:    false,

@@ -40,7 +40,34 @@ const (
 	Unchecked   Badge = "unchecked"
 	NoEmbed     Badge = "no-embed"
 	Audio       Badge = "audio"
+	Easy        Badge = "easy"
+	Medium      Badge = "medium"
+	Hard        Badge = "hard"
 )
+
+type Badges []Badge
+
+func (b Badges) Has(badges ...Badge) bool {
+	for _, badge := range badges {
+		for _, item := range b {
+			if item == badge {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func (b Badges) String() string {
+	items := make([]string, len(b))
+
+	for i, item := range b {
+		items[i] = string(item)
+	}
+
+	return strings.Join(items, ", ")
+}
 
 type Audience string
 
@@ -99,39 +126,54 @@ func (i Importance) Level() int {
 	return -1
 }
 
-type MainVideo string
+type MainStatus string
 
 const (
-	VideoMissing       MainVideo = "missing"
-	VideoReallyMissing MainVideo = "really missing"
-	VideoPresent       MainVideo = "present"
-	VideoProblem       MainVideo = "problem"
+	VideoMissing       MainStatus = "missing"
+	VideoReallyMissing MainStatus = "really missing"
+	VideoPresent       MainStatus = "present"
+	VideoProblem       MainStatus = "problem"
 )
 
-type RelatedVideo struct {
-	Badge   Badge
+type Main struct {
+	Status MainStatus
+	Videos Videos
+}
+
+func (m Main) Has(badges ...Badge) bool {
+	return m.Videos.Has(badges...)
+}
+
+func (m Main) GetIssues() []string {
+	return m.Videos.GetIssues()
+}
+
+type Video struct {
+	Badges  Badges
 	Issues  []string
 	Minutes int
 	Valid   bool
 }
 
-type RelatedVideos []RelatedVideo
+type Videos []Video
 
-func (rv RelatedVideos) GetIssues() []string {
+func (v Videos) GetIssues() []string {
 	var issues []string
 
-	for _, item := range rv {
+	for _, item := range v {
 		issues = append(issues, item.Issues...)
 	}
 
 	return issues
 }
 
-func (rv RelatedVideos) Has(badges ...Badge) bool {
-	for _, item := range rv {
+func (v Videos) Has(badges ...Badge) bool {
+	for _, item := range v {
 		for _, badge := range badges {
-			if item.Badge == badge {
-				return true
+			for _, itemBadge := range item.Badges {
+				if itemBadge == badge {
+					return true
+				}
 			}
 		}
 	}
@@ -140,11 +182,11 @@ func (rv RelatedVideos) Has(badges ...Badge) bool {
 }
 
 type DefaultBody struct {
-	MainVideo          MainVideo
+	Main               Main
 	HasSummary         bool
 	HasTopics          bool
 	HasExercises       bool
-	RelatedVideos      RelatedVideos
+	RelatedVideos      Videos
 	HasRelatedLinks    bool
 	UsefulWithoutVideo bool
 	SlugForced         bool
@@ -197,9 +239,10 @@ func isOrderedCorrectly(goldenMap map[string]int, givenSlice []string) (string, 
 }
 
 func (db DefaultBody) GetIssues(state State) []string {
-	issues := db.RelatedVideos.GetIssues()
+	issues := db.Main.GetIssues()
+	issues = append(issues, db.RelatedVideos.GetIssues()...)
 
-	switch db.MainVideo {
+	switch db.Main.Status {
 	case VideoReallyMissing:
 		if db.UsefulWithoutVideo {
 			issues = append(issues, "main video is NOT REALLY missing (Remove the useful-without-video tag?")
@@ -232,17 +275,55 @@ func (db DefaultBody) GetIssues(state State) []string {
 }
 
 func (db DefaultBody) CalculateState() State {
-	if db.HasSummary && db.HasExercises && !db.RelatedVideos.Has(Unchecked) {
-		if db.MainVideo == VideoPresent || db.UsefulWithoutVideo && db.MainVideo != VideoMissing && db.MainVideo != VideoReallyMissing {
-			return Complete
-		}
+	if db.isComplete() {
+		return Complete
 	}
 
-	if db.MainVideo == VideoPresent || db.RelatedVideos.Has(Alternative, DeepDive, FullCourse) || db.UsefulWithoutVideo {
+	if db.isIncomplete() {
 		return Incomplete
 	}
 
 	return Stub
+}
+
+func (db DefaultBody) isComplete() bool {
+	if db.Main.Status != VideoPresent {
+		return false
+	}
+
+	if !db.HasSummary {
+		return false
+	}
+
+	if !db.HasExercises {
+		return false
+	}
+
+	if db.Main.Has(Unchecked) {
+		return false
+	}
+
+	if db.RelatedVideos.Has(Unchecked) {
+		return false
+	}
+
+	return true
+}
+
+func (db DefaultBody) isIncomplete() bool {
+	if db.Main.Status == VideoPresent || db.UsefulWithoutVideo {
+		return true
+	}
+
+	if db.RelatedVideos.Has(Alternative, DeepDive, FullCourse) {
+		return true
+	}
+
+	return false
+}
+
+func (db DefaultBody) GetStatus() MainStatus {
+	return db.Main.Status
 }
 
 func (db DefaultBody) IsIndex() bool {

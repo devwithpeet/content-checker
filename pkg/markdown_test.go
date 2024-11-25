@@ -44,7 +44,10 @@ title = "Prepare"
 			want: Content{
 				Title: "Prepare",
 				Body: DefaultBody{
-					MainVideo:     VideoProblem,
+					Main: Main{
+						Status: VideoProblem,
+						Videos: nil,
+					},
 					SectionTitles: []string{},
 				},
 			},
@@ -62,7 +65,10 @@ state = "incomplete"
 				Weight: "",
 				Slug:   "",
 				Body: DefaultBody{
-					MainVideo:     VideoProblem,
+					Main: Main{
+						Status: VideoProblem,
+						Videos: nil,
+					},
 					SectionTitles: []string{},
 				},
 			},
@@ -84,7 +90,10 @@ title = "Prepare"
 			want: Content{
 				Title: "Prepare",
 				Body: DefaultBody{
-					MainVideo:     VideoProblem,
+					Main: Main{
+						Status: VideoProblem,
+						Videos: nil,
+					},
 					SectionTitles: []string{},
 				},
 			},
@@ -99,7 +108,10 @@ state = "incomplete"
 			want: Content{
 				State: Incomplete,
 				Body: DefaultBody{
-					MainVideo:     VideoProblem,
+					Main: Main{
+						Status: VideoProblem,
+						Videos: nil,
+					},
 					SectionTitles: []string{},
 				},
 			},
@@ -188,12 +200,15 @@ Exercises
 				Weight: "",
 				Slug:   "",
 				Body: DefaultBody{
-					MainVideo:       VideoProblem,
+					Main: Main{
+						Status: VideoProblem,
+						Videos: nil,
+					},
 					HasSummary:      true,
 					HasTopics:       true,
 					HasExercises:    true,
 					HasRelatedLinks: true,
-					RelatedVideos:   RelatedVideos{},
+					RelatedVideos:   Videos{},
 					SectionTitles: []string{
 						sectionSummary,
 						sectionMainVideo,
@@ -249,12 +264,15 @@ Exercises
 				Weight: "",
 				Slug:   "",
 				Body: DefaultBody{
-					MainVideo:       VideoProblem,
+					Main: Main{
+						Status: VideoProblem,
+						Videos: nil,
+					},
 					HasSummary:      true,
 					HasTopics:       true,
 					HasExercises:    true,
 					HasRelatedLinks: true,
-					RelatedVideos:   RelatedVideos{},
+					RelatedVideos:   Videos{},
 					SectionTitles: []string{
 						sectionSummary,
 						sectionMainVideo,
@@ -300,12 +318,15 @@ state = "complete"
 				Weight: "",
 				Slug:   "",
 				Body: DefaultBody{
-					MainVideo:       VideoProblem,
+					Main: Main{
+						Status: VideoProblem,
+						Videos: nil,
+					},
 					HasSummary:      true,
 					HasTopics:       true,
 					HasExercises:    false,
 					HasRelatedLinks: true,
-					RelatedVideos:   RelatedVideos{},
+					RelatedVideos:   Videos{},
 					SectionTitles: []string{
 						sectionSummary,
 						sectionMainVideo,
@@ -355,12 +376,15 @@ weight = 9
 				Weight: "9",
 				Slug:   "",
 				Body: DefaultBody{
-					MainVideo:       VideoProblem,
+					Main: Main{
+						Status: VideoProblem,
+						Videos: nil,
+					},
 					HasSummary:      true,
 					HasTopics:       true,
 					HasExercises:    true,
 					HasRelatedLinks: true,
-					RelatedVideos:   RelatedVideos{},
+					RelatedVideos:   Videos{},
 					SectionTitles: []string{
 						sectionSummary,
 						sectionMainVideo,
@@ -406,7 +430,17 @@ on your choice of text editor. :D
 				Weight: "60",
 				Slug:   "what-your-text-editor-says-about-you",
 				Body: DefaultBody{
-					MainVideo:       VideoPresent,
+					Main: Main{
+						Status: VideoPresent,
+						Videos: []Video{
+							{
+								Badges:  Badges{},
+								Issues:  nil,
+								Minutes: 5,
+								Valid:   true,
+							},
+						},
+					},
 					HasSummary:      false,
 					HasTopics:       false,
 					HasExercises:    true,
@@ -561,7 +595,10 @@ Related Links
 				Weight: "10",
 				Slug:   "free-dev-learning",
 				Body: DefaultBody{
-					MainVideo:          VideoMissing,
+					Main: Main{
+						Status: VideoMissing,
+						Videos: nil,
+					},
 					HasSummary:         false,
 					HasTopics:          false,
 					HasExercises:       true,
@@ -595,7 +632,7 @@ audienceImportance = "optional"
 Main Video
 ----------
 
-{{< time 11 >}}
+{{< time 11 >}} {{<badge-audio>}} {{<badge-unchecked>}}
 
 Thanks to the [Carrie Anne](https://about.me/carrieannephilbin) and [Crash Course](https://www.youtube.com/@crashcourse)
 I will not have to make a video of this topic.
@@ -731,73 +768,83 @@ probably my favorite video recommended on this page.
 				Weight: "80",
 				Slug:   "electronic-computing",
 				Body: DefaultBody{
-					MainVideo:    VideoPresent,
+					Main: Main{
+						Status: VideoPresent,
+						Videos: []Video{
+							{
+								Badges:  Badges{Unchecked},
+								Issues:  nil,
+								Minutes: 11,
+								Valid:   true,
+							},
+						},
+					},
 					HasSummary:   true,
 					HasTopics:    true,
 					HasExercises: true,
-					RelatedVideos: RelatedVideos{
+					RelatedVideos: Videos{
 						{
-							Badge:   "extra",
+							Badges:  Badges{Extra},
 							Issues:  nil,
 							Minutes: 12,
 							Valid:   true,
 						},
 						{
-							Badge:   "extra",
+							Badges:  Badges{Extra},
 							Issues:  nil,
 							Minutes: 14,
 							Valid:   true,
 						},
 						{
-							Badge:   "extra",
+							Badges:  Badges{Extra},
 							Issues:  nil,
 							Minutes: 21,
 							Valid:   true,
 						},
 						{
-							Badge:   "extra",
+							Badges:  Badges{Extra},
 							Issues:  nil,
 							Minutes: 6,
 							Valid:   true,
 						},
 						{
-							Badge:   "extra",
+							Badges:  Badges{Extra},
 							Issues:  nil,
 							Minutes: 3,
 							Valid:   true,
 						},
 						{
-							Badge:   "extra",
+							Badges:  Badges{Extra},
 							Issues:  nil,
 							Minutes: 20,
 							Valid:   true,
 						},
 						{
-							Badge:   "extra",
+							Badges:  Badges{Extra},
 							Issues:  nil,
 							Minutes: 11,
 							Valid:   true,
 						},
 						{
-							Badge:   "extra",
+							Badges:  Badges{Extra},
 							Issues:  nil,
 							Minutes: 9,
 							Valid:   true,
 						},
 						{
-							Badge:   "extra",
+							Badges:  Badges{Extra},
 							Issues:  nil,
 							Minutes: 60,
 							Valid:   true,
 						},
 						{
-							Badge:   "extra",
+							Badges:  Badges{Extra},
 							Issues:  nil,
 							Minutes: 8,
 							Valid:   true,
 						},
 						{
-							Badge:   "extra",
+							Badges:  Badges{Extra},
 							Issues:  nil,
 							Minutes: 8,
 							Valid:   true,
@@ -893,18 +940,21 @@ Exercises
 				Weight: "40",
 				Slug:   "advanced-linux-commands",
 				Body: DefaultBody{
-					MainVideo:    VideoProblem,
+					Main: Main{
+						Status: VideoProblem,
+						Videos: nil,
+					},
 					HasSummary:   false,
 					HasTopics:    true,
 					HasExercises: false,
-					RelatedVideos: RelatedVideos{
+					RelatedVideos: Videos{
 						{
-							Badge:   Alternative,
+							Badges:  Badges{Alternative},
 							Minutes: 59,
 							Valid:   true,
 						},
 						{
-							Badge:   Alternative,
+							Badges:  Badges{Alternative},
 							Minutes: 14,
 							Valid:   true,
 						},
@@ -939,17 +989,19 @@ Exercises
 
 func TestExtractRelatedVideos(t *testing.T) {
 	type args struct {
-		content string
+		content     string
+		noBadgeOkay bool
 	}
 	tests := []struct {
 		name string
 		args args
-		want RelatedVideos
+		want Videos
 	}{
 		{
 			name: "empty content is skipped",
 			args: args{
-				content: "",
+				content:     "",
+				noBadgeOkay: false,
 			},
 			want: nil,
 		},
@@ -960,10 +1012,11 @@ func TestExtractRelatedVideos(t *testing.T) {
 {{< time 5 >}}
 
 {{< youtube abc >}}`,
+				noBadgeOkay: false,
 			},
-			want: RelatedVideos{
+			want: Videos{
 				{
-					Badge: "",
+					Badges: Badges{},
 					Issues: []string{
 						"missing badge shortcode",
 					},
@@ -982,12 +1035,14 @@ func TestExtractRelatedVideos(t *testing.T) {
 
 {{< youtube abc >}} {{<youtube def>}}
 `,
+				noBadgeOkay: false,
 			},
-			want: RelatedVideos{
+			want: Videos{
 				{
-					Badge: "extra",
+					Badges: Badges{Extra, Extra},
 					Issues: []string{
 						"multiple time shortcodes found",
+						"unexpected badge shortcode found: extra",
 						"multiple youtube shortcodes found",
 					},
 					Minutes: 5,
@@ -1021,10 +1076,11 @@ foo
 {{< youtube bar >}}
 {{< youtube foo >}}
 `,
+				noBadgeOkay: false,
 			},
-			want: RelatedVideos{
+			want: Videos{
 				{
-					Badge: "",
+					Badges: Badges{},
 					Issues: []string{
 						"missing badge shortcode",
 					},
@@ -1032,15 +1088,16 @@ foo
 					Valid:   true,
 				},
 				{
-					Badge: Alternative,
+					Badges: Badges{Alternative, Extra},
 					Issues: []string{
-						"badge should be full-course, not alternative",
+						"unexpected badge shortcode found: extra",
+						"badges should have full-course, but do not. badges: alternative, extra",
 					},
 					Minutes: 123,
 					Valid:   true,
 				},
 				{
-					Badge: Extra,
+					Badges: Badges{Extra},
 					Issues: []string{
 						"multiple youtube shortcodes found",
 					},
@@ -1058,10 +1115,11 @@ foo
 
 {{< youtube bar >}}
 `,
+				noBadgeOkay: false,
 			},
-			want: RelatedVideos{
+			want: Videos{
 				{
-					Badge:   "extra",
+					Badges:  Badges{Extra, Unchecked},
 					Issues:  nil,
 					Minutes: 17,
 					Valid:   true,
@@ -1078,10 +1136,11 @@ foo
 
 {{< youtube bar >}}
 `,
+				noBadgeOkay: false,
 			},
-			want: RelatedVideos{
+			want: Videos{
 				{
-					Badge:   "extra",
+					Badges:  Badges{Extra},
 					Issues:  nil,
 					Minutes: 17,
 					Valid:   true,
@@ -1095,10 +1154,11 @@ foo
 
 {{< time 17 >}} {{<badge-extra>}} {{<badge-no-embed>}}
 `,
+				noBadgeOkay: false,
 			},
-			want: RelatedVideos{
+			want: Videos{
 				{
-					Badge:   "extra",
+					Badges:  Badges{Extra},
 					Issues:  nil,
 					Minutes: 17,
 					Valid:   true,
@@ -1114,10 +1174,11 @@ foo
 
 {{< youtube bar >}}
 `,
+				noBadgeOkay: false,
 			},
-			want: RelatedVideos{
+			want: Videos{
 				{
-					Badge:   "extra",
+					Badges:  Badges{Extra},
 					Issues:  []string{"unexpected youtube shortcode together with no-embed badge"},
 					Minutes: 17,
 					Valid:   true,
@@ -1214,70 +1275,71 @@ probably my favorite video recommended on this page.
 
 {{< youtube OwS9aTE2Go4 >}}
 `,
+				noBadgeOkay: false,
 			},
-			want: RelatedVideos{
+			want: Videos{
 				{
-					Badge:   "extra",
+					Badges:  Badges{Extra},
 					Issues:  nil,
 					Minutes: 12,
 					Valid:   true,
 				},
 				{
-					Badge:   "extra",
+					Badges:  Badges{Extra},
 					Issues:  nil,
 					Minutes: 14,
 					Valid:   true,
 				},
 				{
-					Badge:   "extra",
+					Badges:  Badges{Extra},
 					Issues:  nil,
 					Minutes: 21,
 					Valid:   true,
 				},
 				{
-					Badge:   "extra",
+					Badges:  Badges{Extra},
 					Issues:  nil,
 					Minutes: 6,
 					Valid:   true,
 				},
 				{
-					Badge:   "extra",
+					Badges:  Badges{Extra},
 					Issues:  nil,
 					Minutes: 3,
 					Valid:   true,
 				},
 				{
-					Badge:   "extra",
+					Badges:  Badges{Extra},
 					Issues:  nil,
 					Minutes: 20,
 					Valid:   true,
 				},
 				{
-					Badge:   "extra",
+					Badges:  Badges{Extra},
 					Issues:  nil,
 					Minutes: 11,
 					Valid:   true,
 				},
 				{
-					Badge:   "extra",
+					Badges:  Badges{Extra},
 					Issues:  nil,
 					Minutes: 9,
 					Valid:   true,
 				},
 				{
-					Badge:   "extra",
+					Badges:  Badges{Extra},
 					Issues:  nil,
 					Minutes: 60,
 					Valid:   true,
 				},
 				{
-					Badge:   "extra",
+					Badges:  Badges{Extra},
 					Issues:  nil,
 					Minutes: 8,
 					Valid:   true,
 				},
 				{
-					Badge:   "extra",
+					Badges:  Badges{Extra},
 					Issues:  nil,
 					Minutes: 8,
 					Valid:   true,
@@ -1288,7 +1350,7 @@ probably my favorite video recommended on this page.
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// execute
-			got := ExtractRelatedVideos(tt.args.content)
+			got := ExtractVideos(tt.args.content, tt.args.noBadgeOkay)
 
 			// verify
 			assert.Equal(t, tt.want, got)

@@ -52,7 +52,7 @@ func ParseMarkdown(rawContent string) (Content, error) {
 		return Content{}, fmt.Errorf("markdown header could not be extracted, err: %w", err)
 	}
 
-	sections := extractSection(body)
+	sections := extractSections(body)
 	tags := getHeaderValues(header, "tags", nil)
 
 	var content Content
@@ -164,7 +164,7 @@ func (s Sections) Titles() []string {
 	return keys
 }
 
-func extractSection(body string) Sections {
+func extractSections(body string) Sections {
 	var sections Sections
 
 	currentSection := "root"
@@ -217,54 +217,57 @@ var regexMissing = regexp.MustCompile(`{{<\s*main-missing\s*>}}`)
 var regexReallyMissing = regexp.MustCompile(`{{<\s*main-really-missing\s*>}}`)
 var regexYoutube = regexp.MustCompile(`{{<\s*youtube(-button)?\s+([^>]*)\s*>}}`)
 
-func ExtractMainVideo(content string) MainVideo {
+func ExtractMain(content string) Main {
 	matchCount := 0
-	mainVideo := VideoProblem
+	main := Main{
+		Status: VideoProblem,
+		Videos: nil,
+	}
 
 	matches := regexMissing.FindAllStringSubmatch(content, -1)
 	if len(matches) > 0 {
-		matchCount += len(matches)
-		mainVideo = VideoMissing
+		main.Status = VideoMissing
+		matchCount++
 	}
 
 	matches = regexReallyMissing.FindAllStringSubmatch(content, -1)
 	if len(matches) > 0 {
-		matchCount += len(matches)
-		mainVideo = VideoReallyMissing
+		main.Status = VideoReallyMissing
+		matchCount++
+	}
+
+	if matchCount > 1 {
+		main.Status = VideoProblem
 	}
 
 	matches = regexYoutube.FindAllStringSubmatch(content, -1)
 	if len(matches) > 0 {
+		main.Videos = ExtractVideos(content, true)
+
 		if matchCount == 0 {
-			return VideoPresent
+			main.Status = VideoPresent
 		}
-
-		matchCount++
 	}
 
-	if matchCount != 1 {
-		return VideoProblem
-	}
-
-	return mainVideo
+	return main
 }
 
 var regexSubHeader = regexp.MustCompile(`\n####?#? .*\n`)
 
-func ExtractRelatedVideos(content string) RelatedVideos {
+func ExtractVideos(content string, noBadgeOkay bool) Videos {
 	if strings.TrimSpace(content) == "" {
 		return nil
 	}
 
 	sections := regexSubHeader.Split("\n"+content, -1)
 
-	relatedVideos := make(RelatedVideos, 0, len(sections))
+	relatedVideos := make(Videos, 0, len(sections))
 	for _, section := range sections {
 		if strings.TrimSpace(section) == "" {
 			continue
 		}
 
-		relatedVideo := extractRelatedVideo(section)
+		relatedVideo := extractVideo(section, noBadgeOkay)
 
 		if relatedVideo.Valid {
 			relatedVideos = append(relatedVideos, relatedVideo)
@@ -301,9 +304,9 @@ func extractTime(content string) (int, []string) {
 
 var regexBadge = regexp.MustCompile(`{{<\s*badge-(\S*)\s*>}}`)
 
-func extractBadges(content string) (Badge, bool, []string) {
+func extractBadges(content string, noBadgeOkay bool) (Badges, bool, []string) {
 	var (
-		badges []Badge
+		badges = Badges{}
 		issues []string
 	)
 
@@ -316,7 +319,7 @@ func extractBadges(content string) (Badge, bool, []string) {
 			badges = append(badges, badge)
 		case NoEmbed:
 			noEmbed = true
-		case Audio:
+		case Audio, Easy, Medium, Hard:
 			continue
 		default:
 			issues = append(issues, fmt.Sprintf("Unknown badge: '%s'", badge))
@@ -324,26 +327,28 @@ func extractBadges(content string) (Badge, bool, []string) {
 	}
 
 	if len(badges) == 0 {
-		issues = append(issues, "missing badge shortcode")
-
-		return "", noEmbed, issues
-	} else if len(badges) > 1 {
-		levelBadgeFound := false
-		for _, badge := range badges[1:] {
-			switch badge {
-			case Unchecked, Audio, NoEmbed:
-				continue
-			}
-
-			if levelBadgeFound {
-				issues = append(issues, "unexpected badge shortcode found: "+string(badge))
-			}
-
-			levelBadgeFound = true
+		if !noBadgeOkay {
+			issues = append(issues, "missing badge shortcode")
 		}
+
+		return Badges{}, noEmbed, issues
 	}
 
-	return badges[0], noEmbed, issues
+	levelFound := NoEmbed
+
+	for _, badge := range badges {
+		if badge == Unchecked || badge == Audio || badge == NoEmbed {
+			continue
+		}
+
+		if levelFound != NoEmbed {
+			issues = append(issues, "unexpected badge shortcode found: "+string(badge))
+		}
+
+		levelFound = badge
+	}
+
+	return badges, noEmbed, issues
 }
 
 func extractYoutube(content string, noEmbed bool) (int, []string) {
@@ -367,9 +372,8 @@ func extractYoutube(content string, noEmbed bool) (int, []string) {
 	return len(youtubeMatches), issues
 }
 
-func extractRelatedVideo(content string) RelatedVideo {
+func extractVideo(content string, noBadgeOkay bool) Video {
 	var (
-		badge   Badge
 		issues  []string
 		minutes int
 	)
@@ -377,30 +381,30 @@ func extractRelatedVideo(content string) RelatedVideo {
 	minutes, timeIssues := extractTime(content)
 	issues = append(issues, timeIssues...)
 
-	badge, noEmbed, badgeIssues := extractBadges(content)
+	badges, noEmbed, badgeIssues := extractBadges(content, noBadgeOkay)
 	issues = append(issues, badgeIssues...)
 
 	ytCount, ytIssues := extractYoutube(content, noEmbed)
 	issues = append(issues, ytIssues...)
 
-	if ytCount == 0 && !noEmbed && badge == "" && minutes == 0 {
-		return RelatedVideo{}
+	if ytCount == 0 && !noEmbed && len(badges) == 0 && minutes == 0 {
+		return Video{}
 	}
 
-	if minutes > 0 && badge != "" && strings.Index(content, "badge") < strings.Index(content, "time") {
+	if minutes > 0 && len(badges) > 0 && strings.Index(content, "badge") < strings.Index(content, "time") {
 		issues = append(issues, "badge should be placed after time")
 	}
 
-	if minutes >= maxNonFullCourseLength && badge != FullCourse && badge != Fun {
-		issues = append(issues, "badge should be full-course, not "+string(badge))
-	} else if minutes > maxExtraLength && badge == Extra {
-		issues = append(issues, "badge should be deep-dive, not extra")
-	} else if minutes < minDeepDiveLength && badge == DeepDive {
-		issues = append(issues, "badge should be extra, not "+string(badge))
+	if minutes >= maxNonFullCourseLength && !badges.Has(FullCourse, Fun) {
+		issues = append(issues, "badges should have full-course, but do not. badges: "+badges.String())
+	} else if minutes > maxExtraLength && badges.Has(Extra) {
+		issues = append(issues, "badge should have deep-dive, but do not. badges: "+badges.String())
+	} else if minutes < minDeepDiveLength && badges.Has(DeepDive) {
+		issues = append(issues, "badge should have extra, but do not. badges: "+badges.String())
 	}
 
-	return RelatedVideo{
-		Badge:   badge,
+	return Video{
+		Badges:  badges,
 		Issues:  issues,
 		Minutes: minutes,
 		Valid:   true,
@@ -420,8 +424,8 @@ func sectionsToDefaultBody(sections Sections, tags []string) DefaultBody {
 	hasRelatedLinks := sections.HasNonEmpty(sectionRelatedLinks)
 	hasExercises := sections.HasNonEmpty(sectionExercises)
 
-	mainVideo := ExtractMainVideo(sections.Get(sectionMainVideo))
-	relatedVideos := ExtractRelatedVideos(sections.Get(sectionRelatedVideos))
+	main := ExtractMain(sections.Get(sectionMainVideo))
+	relatedVideos := ExtractVideos(sections.Get(sectionRelatedVideos), false)
 
 	if hasExercises && strings.TrimSpace(sections.Get(sectionExercises)) == "" {
 		hasExercises = false
@@ -446,7 +450,7 @@ func sectionsToDefaultBody(sections Sections, tags []string) DefaultBody {
 	}
 
 	return DefaultBody{
-		MainVideo:          mainVideo,
+		Main:               main,
 		HasSummary:         hasSummary,
 		HasTopics:          hasTopics,
 		RelatedVideos:      relatedVideos,
