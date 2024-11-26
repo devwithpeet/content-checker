@@ -13,7 +13,7 @@ import (
 
 type Command string
 
-const Version = "0.3.0"
+const Version = "0.3.1"
 
 const (
 	PrintCommand   Command = "print"

@@ -405,11 +405,13 @@ type Content struct {
 
 var regexDashes = regexp.MustCompile(`-+-`)
 var regexSlugReduce = regexp.MustCompile(`[:,/?! ]`)
-var regexSlugRemove = regexp.MustCompile(`[.'"/\\]`)
+var regexSlugRemove = regexp.MustCompile(`[.'"\\]`)
 
 func slugify(title string) string {
 	title = strings.ToLower(title)
+	title = strings.Replace(title, "i/o", "io", -1)
 	title = strings.Replace(title, "#", "-sharp-", -1)
+	title = strings.Replace(title, "&", "-and-", -1)
 	title = strings.TrimSuffix(title, ".")
 	title = strings.Replace(title, ".", "-dot-", -1)
 
