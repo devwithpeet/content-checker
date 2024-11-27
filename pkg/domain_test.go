@@ -44,13 +44,16 @@ func TestCourses_Add(t *testing.T) {
 			c: Courses{},
 			want: Courses{
 				{
-					Title: "foo",
+					Course: "foo",
 					Chapters: Chapters{
 						{
-							Title: "bar",
+							Course:  "foo",
+							Chapter: "bar",
 							Pages: Pages{
 								{
-									FilePath: "foo/bar/baz.md",
+									FileName: "baz.md",
+									Course:   "foo",
+									Chapter:  "bar",
 									Title:    "baz.md",
 									Content:  stubContent,
 								},
@@ -71,13 +74,16 @@ func TestCourses_Add(t *testing.T) {
 			},
 			c: Courses{
 				{
-					Title: "foo",
+					Course: "foo",
 					Chapters: Chapters{
 						{
-							Title: "bar",
+							Course:  "foo",
+							Chapter: "bar",
 							Pages: Pages{
 								{
-									FilePath: "baz0.md",
+									FileName: "baz0.md",
+									Course:   "foo",
+									Chapter:  "bar",
 									Content:  stubContent,
 								},
 							},
@@ -87,17 +93,22 @@ func TestCourses_Add(t *testing.T) {
 			},
 			want: Courses{
 				{
-					Title: "foo",
+					Course: "foo",
 					Chapters: Chapters{
 						{
-							Title: "bar",
+							Course:  "foo",
+							Chapter: "bar",
 							Pages: Pages{
 								{
-									FilePath: "baz0.md",
+									FileName: "baz0.md",
+									Course:   "foo",
+									Chapter:  "bar",
 									Content:  stubContent,
 								},
 								{
-									FilePath: "foo/bar/baz.md",
+									FileName: "foo/bar/baz.md",
+									Course:   "foo",
+									Chapter:  "bar",
 									Title:    "baz.md",
 									Content:  stubContent,
 								},
@@ -118,13 +129,16 @@ func TestCourses_Add(t *testing.T) {
 			},
 			c: Courses{
 				{
-					Title: "foo",
+					Course: "foo",
 					Chapters: Chapters{
 						{
-							Title: "bar0",
+							Course:  "foo",
+							Chapter: "bar0",
 							Pages: Pages{
 								{
-									FilePath: "baz.md",
+									FileName: "baz.md",
+									Course:   "foo",
+									Chapter:  "bar0",
 									Content:  stubContent,
 								},
 							},
@@ -134,22 +148,28 @@ func TestCourses_Add(t *testing.T) {
 			},
 			want: Courses{
 				{
-					Title: "foo",
+					Course: "foo",
 					Chapters: Chapters{
 						{
-							Title: "bar0",
+							Course:  "foo",
+							Chapter: "bar0",
 							Pages: Pages{
 								{
-									FilePath: "baz.md",
+									FileName: "baz.md",
+									Course:   "foo",
+									Chapter:  "bar0",
 									Content:  stubContent,
 								},
 							},
 						},
 						{
-							Title: "bar",
+							Course:  "foo",
+							Chapter: "bar",
 							Pages: Pages{
 								{
-									FilePath: "foo/bar/baz.md",
+									FileName: "foo/bar/baz.md",
+									Course:   "foo",
+									Chapter:  "bar",
 									Title:    "baz.md",
 									Content:  stubContent,
 								},
@@ -170,13 +190,16 @@ func TestCourses_Add(t *testing.T) {
 			},
 			c: Courses{
 				{
-					Title: "foo0",
+					Course: "foo0",
 					Chapters: Chapters{
 						{
-							Title: "bar",
+							Course:  "foo0",
+							Chapter: "bar",
 							Pages: Pages{
 								{
-									FilePath: "baz.md",
+									FileName: "baz.md",
+									Course:   "foo0",
+									Chapter:  "bar",
 									Content:  stubContent,
 								},
 							},
@@ -186,13 +209,16 @@ func TestCourses_Add(t *testing.T) {
 			},
 			want: Courses{
 				{
-					Title: "foo0",
+					Course: "foo0",
 					Chapters: Chapters{
 						{
-							Title: "bar",
+							Course:  "foo0",
+							Chapter: "bar",
 							Pages: Pages{
 								{
-									FilePath: "baz.md",
+									FileName: "baz.md",
+									Course:   "foo0",
+									Chapter:  "bar",
 									Content:  stubContent,
 								},
 							},
@@ -200,13 +226,16 @@ func TestCourses_Add(t *testing.T) {
 					},
 				},
 				{
-					Title: "foo",
+					Course: "foo",
 					Chapters: Chapters{
 						{
-							Title: "bar",
+							Course:  "foo",
+							Chapter: "bar",
 							Pages: Pages{
 								{
-									FilePath: "foo/bar/baz.md",
+									FileName: "baz.md",
+									Course:   "foo",
+									Chapter:  "bar",
 									Title:    "baz.md",
 									Content:  stubContent,
 								},

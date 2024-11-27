@@ -2,7 +2,6 @@ package pkg
 
 import (
 	"fmt"
-	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -249,20 +248,27 @@ func slugify(title string) string {
 	return strings.Trim(title, "-")
 }
 
-func (c Content) GetIssues(filePath string) []string {
+func (c Content) GetIssues(filePath, course, chapter, page string) []string {
 	issues := c.Body.GetIssues(c.State)
+
+	slug := slugify(c.Title)
 
 	_, isIndex := c.Body.(*IndexBody)
 	if !isIndex {
-		filename := filepath.Base(filePath)
-		if !strings.HasPrefix(filename, c.Weight) {
-			issues = append(issues, "file name is not prefixed with the weight of the page")
+		if !strings.HasPrefix(page, c.Weight) {
+			issues = append(issues, fmt.Sprintf("file name is not prefixed with the weight of the page, file name: %s, weight: %s", page, c.Weight))
 		}
-		if fmt.Sprintf("%s-%s.md", c.Weight, c.Slug) != filename {
-			issues = append(issues, "file name does not match the dash joined weight and slug")
+
+		if fmt.Sprintf("%s-%s.md", c.Weight, c.Slug) != page {
+			issues = append(issues, fmt.Sprintf("file name does not match the dash joined weight and slug, file name: %s, weight: %s", page, c.Weight))
 		}
-		if !c.Body.IsSlugForced() && c.Slug != slugify(c.Title) {
-			issues = append(issues, fmt.Sprintf("slug does not match the lowercase title with dashes (`%s`, `%s`)", c.Slug, slugify(c.Title)))
+
+		if !c.Body.IsSlugForced() && c.Slug != slug {
+			issues = append(issues, fmt.Sprintf("slug does not match the lowercase title with dashes (`%s`, `%s`)", c.Slug, slug))
+		}
+	} else {
+		if chapter != slug {
+			issues = append(issues, fmt.Sprintf("chapter does not match the slug, file name: %s, chapter: %s, slug: %s", page, chapter, slug))
 		}
 	}
 
@@ -298,13 +304,15 @@ func (c Content) GetIssues(filePath string) []string {
 }
 
 type Page struct {
-	FilePath string
 	Title    string
 	Content  Content
+	Course   string
+	Chapter  string
+	FileName string
 }
 
 func (p Page) GetIssues() []string {
-	issues := p.Content.GetIssues(p.FilePath)
+	issues := p.Content.GetIssues(p.FileName, p.Course, p.Chapter, p.Title)
 
 	return issues
 }
@@ -313,7 +321,7 @@ func (p Page) GetErrors() []string {
 	var errors []string
 
 	for _, issue := range p.GetIssues() {
-		errors = append(errors, fmt.Sprintf("%s - %s", p.FilePath, issue))
+		errors = append(errors, fmt.Sprintf("%s - %s", p.FileName, issue))
 	}
 
 	return errors
@@ -338,7 +346,7 @@ func (p Page) String() string {
 		color = cliRed
 	}
 
-	result := fmt.Sprintln("    ", color, p.FilePath, "-", p.Content.State, cliReset)
+	result := fmt.Sprintln("    ", color, p.FileName, "-", p.Content.State, cliReset)
 
 	for _, issue := range issues {
 		result += fmt.Sprintln("        - ", issue)
@@ -349,12 +357,13 @@ func (p Page) String() string {
 
 type Pages []Page
 
-func (p Pages) Add(filePath, pageFN string, content Content) Pages {
-	return append(p, Page{FilePath: filePath, Title: pageFN, Content: content})
+func (p Pages) Add(filePath, courseFN, chapterFN, pageFN string, content Content) Pages {
+	return append(p, Page{FileName: filePath, Course: courseFN, Chapter: chapterFN, Title: pageFN, Content: content})
 }
 
 type Chapter struct {
-	Title    string
+	Course   string
+	Chapter  string
 	Pages    Pages
 	prepared bool
 }
@@ -398,16 +407,16 @@ func (c *Chapter) Prepare() {
 }
 
 func (c *Chapter) String(statesAllowed map[State]struct{}, printIndex, printNonIndex bool) string {
-	result := fmt.Sprintln("  ", c.Title)
+	result := fmt.Sprintln("  ", c.Chapter)
 
 	c.Prepare()
 
 	for _, page := range c.Pages {
-		if !printNonIndex && !strings.HasSuffix(page.FilePath, "_index.md") {
+		if !printNonIndex && !strings.HasSuffix(page.FileName, "_index.md") {
 			continue
 		}
 
-		if !printIndex && strings.HasSuffix(page.FilePath, "_index.md") {
+		if !printIndex && strings.HasSuffix(page.FileName, "_index.md") {
 			continue
 		}
 
@@ -435,19 +444,33 @@ func (c *Chapter) GetErrors() []string {
 
 type Chapters []*Chapter
 
-func (c Chapters) Add(filePath, chapterFN, pageFN string, content Content) Chapters {
+func (c Chapters) Add(filePath, courseFN, chapterFN, pageFN string, content Content) Chapters {
 	for i, chapter := range c {
-		if chapter.Title == chapterFN {
-			c[i].Pages = c[i].Pages.Add(filePath, pageFN, content)
+		if chapter.Chapter == chapterFN {
+			c[i].Pages = c[i].Pages.Add(filePath, courseFN, chapterFN, pageFN, content)
 			return c
 		}
 	}
 
-	return append(c, &Chapter{Title: chapterFN, Pages: Pages{{FilePath: filePath, Title: pageFN, Content: content}}})
+	return append(
+		c,
+		&Chapter{
+			Course:  courseFN,
+			Chapter: chapterFN,
+			Pages: Pages{
+				{
+					FileName: filePath,
+					Course:   courseFN,
+					Chapter:  chapterFN,
+					Title:    pageFN,
+					Content:  content,
+				},
+			},
+		})
 }
 
 type Course struct {
-	Title    string
+	Course   string
 	Chapters Chapters
 }
 
@@ -458,7 +481,7 @@ func (c Course) Prepare() {
 }
 
 func (c Course) String(statesAllowed map[State]struct{}, printIndex, printNonIndex bool) string {
-	result := fmt.Sprintln(c.Title)
+	result := fmt.Sprintln(c.Course)
 
 	for _, chapter := range c.Chapters {
 		result += chapter.String(statesAllowed, printIndex, printNonIndex)
@@ -508,13 +531,32 @@ type Courses []Course
 
 func (c Courses) Add(filePath, courseFN, chapterFN, pageFN string, content Content) Courses {
 	for i, course := range c {
-		if course.Title == courseFN {
-			c[i].Chapters = c[i].Chapters.Add(filePath, chapterFN, pageFN, content)
+		if course.Course == courseFN {
+			c[i].Chapters = c[i].Chapters.Add(filePath, courseFN, chapterFN, pageFN, content)
 			return c
 		}
 	}
 
-	return append(c, Course{Title: courseFN, Chapters: Chapters{{Title: chapterFN, Pages: Pages{{FilePath: filePath, Title: pageFN, Content: content}}}}})
+	return append(
+		c,
+		Course{
+			Course: courseFN,
+			Chapters: Chapters{
+				{
+					Chapter: chapterFN,
+					Course:  courseFN,
+					Pages: Pages{
+						{
+							Title:    pageFN,
+							Content:  content,
+							Course:   courseFN,
+							Chapter:  chapterFN,
+							FileName: pageFN,
+						},
+					},
+				},
+			},
+		})
 }
 
 type CourseStat struct {
@@ -590,7 +632,7 @@ func (c Courses) Stats() {
 	for _, course := range c {
 		courseAll, courseStub, courseIncomplete, courseComplete, courseErrors := course.Stats()
 
-		newStats := NewCourseStat(course.Title, courseAll, courseStub, courseIncomplete, courseComplete, courseErrors)
+		newStats := NewCourseStat(course.Course, courseAll, courseStub, courseIncomplete, courseComplete, courseErrors)
 
 		stats = append(stats, newStats)
 

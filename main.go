@@ -13,7 +13,7 @@ import (
 
 type Command string
 
-const Version = "0.3.2"
+const Version = "0.3.3"
 
 const (
 	PrintCommand   Command = "print"
@@ -177,11 +177,7 @@ func CrawlMarkdownFiles(matches []string, maxErrors int, courseWanted string, ve
 
 		course := parts[len(parts)-3]
 		chapter := parts[len(parts)-2]
-		page := parts[len(parts)-1]
-
-		// if len(courseWanted) > 0 && course != courseWanted {
-		// 	continue
-		// }
+		fileName := parts[len(parts)-1]
 
 		rawContent, err := os.ReadFile(filePath)
 		if err != nil {
@@ -193,9 +189,9 @@ func CrawlMarkdownFiles(matches []string, maxErrors int, courseWanted string, ve
 			panic("cannot parse markdown: " + filePath + ", err: " + err.Error())
 		}
 
-		result = result.Add(filePath, course, chapter, page, content)
+		result = result.Add(filePath, course, chapter, fileName, content)
 
-		if len(content.GetIssues(filePath)) > 0 {
+		if len(content.GetIssues(filePath, course, chapter, fileName)) > 0 {
 			errCount++
 		}
 
@@ -206,7 +202,7 @@ func CrawlMarkdownFiles(matches []string, maxErrors int, courseWanted string, ve
 		fmt.Println()
 		fmt.Println("Courses:")
 		for _, course := range result {
-			fmt.Println(course.Title)
+			fmt.Println(course.Course)
 		}
 	}
 
