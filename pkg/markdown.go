@@ -398,9 +398,9 @@ func extractVideo(content string, noBadgeOkay bool) Video {
 	if minutes >= maxNonFullCourseLength && !badges.Has(FullCourse, Fun) {
 		issues = append(issues, "badges should have full-course, but do not. badges: "+badges.String())
 	} else if minutes > maxExtraLength && badges.Has(Extra) {
-		issues = append(issues, "badge should have deep-dive, but do not. badges: "+badges.String())
+		issues = append(issues, "badges should have deep-dive, but do not. badges: "+badges.String())
 	} else if minutes < minDeepDiveLength && badges.Has(DeepDive) {
-		issues = append(issues, "badge should have extra, but do not. badges: "+badges.String())
+		issues = append(issues, "badges should have extra, but do not. badges: "+badges.String())
 	}
 
 	return Video{

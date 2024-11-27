@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 	"regexp"
@@ -253,8 +254,14 @@ func (db DefaultBody) GetIssues(state State) []string {
 		}
 	}
 
-	if state != db.CalculateState() {
-		issues = append(issues, fmt.Sprintf("state mismatch. got: %s, want: %s", state, db.CalculateState()))
+	calculatedStates, err := db.CalculateState()
+	if state != calculatedStates {
+		msg := "unknown"
+		if err != nil {
+			msg = err.Error()
+		}
+
+		issues = append(issues, fmt.Sprintf("state mismatch. got: %s, want: %s, reason: %s", state, calculatedStates, msg))
 	}
 
 	if item, ok := isOrderedCorrectly(defaultBodySectionMap, db.SectionTitles); !ok {
@@ -274,52 +281,54 @@ func (db DefaultBody) GetIssues(state State) []string {
 	return issues
 }
 
-func (db DefaultBody) CalculateState() State {
-	if db.isComplete() {
-		return Complete
+func (db DefaultBody) CalculateState() (State, error) {
+	err := db.isComplete()
+	if err == nil {
+		return Complete, nil
 	}
 
-	if db.isIncomplete() {
-		return Incomplete
+	err2 := db.isIncomplete()
+	if err2 == nil {
+		return Incomplete, err
 	}
 
-	return Stub
+	return Stub, err2
 }
 
-func (db DefaultBody) isComplete() bool {
+func (db DefaultBody) isComplete() error {
 	if db.Main.Status != VideoPresent {
-		return false
+		return errors.New("video not present")
 	}
 
 	if !db.HasSummary {
-		return false
+		return errors.New("summary section missing")
 	}
 
 	if !db.HasExercises {
-		return false
+		return errors.New("exercises section missing")
 	}
 
 	if db.Main.Has(Unchecked) {
-		return false
+		return errors.New("main has unchecked videos")
 	}
 
 	if db.RelatedVideos.Has(Unchecked) {
-		return false
+		return errors.New("related videos include unchecked videos")
 	}
 
-	return true
+	return nil
 }
 
-func (db DefaultBody) isIncomplete() bool {
+func (db DefaultBody) isIncomplete() error {
 	if db.Main.Status == VideoPresent || db.UsefulWithoutVideo {
-		return true
+		return nil
 	}
 
 	if db.RelatedVideos.Has(Alternative, DeepDive, FullCourse) {
-		return true
+		return nil
 	}
 
-	return false
+	return errors.New("video missing and no alternative, deep-dive or full-course videos")
 }
 
 func (db DefaultBody) GetStatus() MainStatus {
@@ -343,12 +352,12 @@ func (ib *IndexBody) GetIssues(_ State) []string {
 	return nil
 }
 
-func (ib *IndexBody) CalculateState() State {
+func (ib *IndexBody) CalculateState() (State, error) {
 	if ib.HasEpisodes {
-		return ib.CompleteState
+		return ib.CompleteState, nil
 	}
 
-	return Stub
+	return Stub, errors.New("no episodes")
 }
 
 func (ib *IndexBody) SetCompleteState(state State) {
@@ -369,16 +378,16 @@ func (pb PracticeBody) GetIssues(_ State) []string {
 	return nil
 }
 
-func (pb PracticeBody) CalculateState() State {
+func (pb PracticeBody) CalculateState() (State, error) {
 	if !pb.HasDescription {
-		return Stub
+		return Stub, errors.New("no description")
 	}
 
 	if pb.HasRecommendedChallenges && pb.HasAdditionalChallenges {
-		return Complete
+		return Complete, nil
 	}
 
-	return Incomplete
+	return Incomplete, errors.New("missing recommended or additional challenges")
 }
 
 func (pb PracticeBody) IsSlugForced() bool {
@@ -387,7 +396,7 @@ func (pb PracticeBody) IsSlugForced() bool {
 
 type Body interface {
 	GetIssues(state State) []string
-	CalculateState() State
+	CalculateState() (State, error)
 	IsSlugForced() bool
 }
 
