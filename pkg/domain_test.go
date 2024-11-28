@@ -51,7 +51,7 @@ func TestCourses_Add(t *testing.T) {
 							Chapter: "bar",
 							Pages: Pages{
 								{
-									FileName: "baz.md",
+									FileName: "foo/bar/baz.md",
 									Course:   "foo",
 									Chapter:  "bar",
 									Title:    "baz.md",
@@ -81,7 +81,7 @@ func TestCourses_Add(t *testing.T) {
 							Chapter: "bar",
 							Pages: Pages{
 								{
-									FileName: "baz0.md",
+									FileName: "foo/bar/baz0.md",
 									Course:   "foo",
 									Chapter:  "bar",
 									Content:  stubContent,
@@ -100,7 +100,7 @@ func TestCourses_Add(t *testing.T) {
 							Chapter: "bar",
 							Pages: Pages{
 								{
-									FileName: "baz0.md",
+									FileName: "foo/bar/baz0.md",
 									Course:   "foo",
 									Chapter:  "bar",
 									Content:  stubContent,
@@ -136,7 +136,7 @@ func TestCourses_Add(t *testing.T) {
 							Chapter: "bar0",
 							Pages: Pages{
 								{
-									FileName: "baz.md",
+									FileName: "foo/bar0/baz.md",
 									Course:   "foo",
 									Chapter:  "bar0",
 									Content:  stubContent,
@@ -155,7 +155,7 @@ func TestCourses_Add(t *testing.T) {
 							Chapter: "bar0",
 							Pages: Pages{
 								{
-									FileName: "baz.md",
+									FileName: "foo/bar0/baz.md",
 									Course:   "foo",
 									Chapter:  "bar0",
 									Content:  stubContent,
@@ -197,9 +197,10 @@ func TestCourses_Add(t *testing.T) {
 							Chapter: "bar",
 							Pages: Pages{
 								{
-									FileName: "baz.md",
+									FileName: "foo0/bar/baz.md",
 									Course:   "foo0",
 									Chapter:  "bar",
+									Title:    "baz.md",
 									Content:  stubContent,
 								},
 							},
@@ -216,9 +217,10 @@ func TestCourses_Add(t *testing.T) {
 							Chapter: "bar",
 							Pages: Pages{
 								{
-									FileName: "baz.md",
+									FileName: "foo0/bar/baz.md",
 									Course:   "foo0",
 									Chapter:  "bar",
+									Title:    "baz.md",
 									Content:  stubContent,
 								},
 							},
@@ -233,7 +235,7 @@ func TestCourses_Add(t *testing.T) {
 							Chapter: "bar",
 							Pages: Pages{
 								{
-									FileName: "baz.md",
+									FileName: "foo/bar/baz.md",
 									Course:   "foo",
 									Chapter:  "bar",
 									Title:    "baz.md",

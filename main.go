@@ -13,7 +13,7 @@ import (
 
 type Command string
 
-const Version = "0.3.3"
+const Version = "0.3.4"
 
 const (
 	PrintCommand   Command = "print"
@@ -22,7 +22,7 @@ const (
 	VersionCommand Command = "version"
 )
 
-func getArgs(args []string) (Command, string, map[pkg.State]struct{}, bool, bool, bool, string, int) {
+func getArgs(args []string) (Command, string, map[pkg.State]struct{}, bool, bool, bool, string, int, []string) {
 	var err error
 
 	action := PrintCommand
@@ -39,6 +39,7 @@ func getArgs(args []string) (Command, string, map[pkg.State]struct{}, bool, bool
 	root := "."
 	courseWanted := ""
 	maxErrors := defaulMaxErrors
+	tagsWanted := []string{}
 
 	if len(args) > 2 {
 		for i := 2; i < len(args); i++ {
@@ -51,6 +52,16 @@ func getArgs(args []string) (Command, string, map[pkg.State]struct{}, bool, bool
 				printIndex = true
 			case "--verbose", "-verbose":
 				verbose = true
+			case "--tags", "-tags":
+				if len(args) <= i+1 {
+					panic("missing value for --tags")
+				}
+
+				for _, tag := range strings.Split(args[i+1], ",") {
+					tagsWanted = append(tagsWanted, strings.TrimSpace(tag))
+				}
+
+				i++
 			case "--max-errors", "-max-errors":
 				if len(args) <= i+1 {
 					panic("missing value for --max-errors")
@@ -94,11 +105,11 @@ func getArgs(args []string) (Command, string, map[pkg.State]struct{}, bool, bool
 		}
 	}
 
-	return action, root, statesAllowed, verbose, printIndex, printNonIndex, courseWanted, maxErrors
+	return action, root, statesAllowed, verbose, printIndex, printNonIndex, courseWanted, maxErrors, tagsWanted
 }
 
 func main() {
-	action, root, statesAllowed, verbose, printIndex, printNonIndex, courseWanted, maxErrors := getArgs(os.Args)
+	action, root, statesAllowed, verbose, printIndex, printNonIndex, courseWanted, maxErrors, tagsWanted := getArgs(os.Args)
 
 	// collect markdown files
 	files, err := findFiles(root, courseWanted, verbose)
@@ -107,7 +118,7 @@ func main() {
 	}
 
 	// fetch markdown files
-	courses, count := CrawlMarkdownFiles(files, maxErrors, courseWanted, verbose)
+	courses, count := CrawlMarkdownFiles(files, maxErrors, tagsWanted, verbose)
 
 	Prepare(courses)
 
@@ -153,7 +164,7 @@ func findFiles(root, courseWanted string, verbose bool) ([]string, error) {
 
 const defaulMaxErrors = -1
 
-func CrawlMarkdownFiles(matches []string, maxErrors int, courseWanted string, verbose bool) (pkg.Courses, int) {
+func CrawlMarkdownFiles(matches []string, maxErrors int, tagsWanted []string, verbose bool) (pkg.Courses, int) {
 	if maxErrors < 0 {
 		maxErrors = math.MaxInt
 	}
@@ -187,6 +198,28 @@ func CrawlMarkdownFiles(matches []string, maxErrors int, courseWanted string, ve
 		content, err := pkg.ParseMarkdown(string(rawContent))
 		if err != nil {
 			panic("cannot parse markdown: " + filePath + ", err: " + err.Error())
+		}
+
+		if len(tagsWanted) > 0 {
+			found := false
+
+			for _, tag := range content.Tags {
+				for _, tagWanted := range tagsWanted {
+					if tag == tagWanted {
+						found = true
+						break
+					}
+
+				}
+
+				if found {
+					break
+				}
+			}
+
+			if !found {
+				continue
+			}
 		}
 
 		result = result.Add(filePath, course, chapter, fileName, content)

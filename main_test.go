@@ -26,6 +26,7 @@ func Test_getArgs(t *testing.T) {
 		wantPrintNonIndex bool
 		wantCourseWanted  string
 		wantMaxErrors     int
+		wantTagsWanted    []string
 	}{
 		{
 			name:              "version",
@@ -38,6 +39,7 @@ func Test_getArgs(t *testing.T) {
 			wantPrintNonIndex: true,
 			wantCourseWanted:  "",
 			wantMaxErrors:     -1,
+			wantTagsWanted:    []string{},
 		},
 		{
 			name:              "print",
@@ -50,6 +52,7 @@ func Test_getArgs(t *testing.T) {
 			wantPrintNonIndex: true,
 			wantCourseWanted:  "",
 			wantMaxErrors:     -1,
+			wantTagsWanted:    []string{},
 		},
 		{
 			name:              "print hello",
@@ -62,6 +65,7 @@ func Test_getArgs(t *testing.T) {
 			wantPrintNonIndex: true,
 			wantCourseWanted:  "",
 			wantMaxErrors:     -1,
+			wantTagsWanted:    []string{},
 		},
 		{
 			name:              "print hello --verbose",
@@ -74,6 +78,7 @@ func Test_getArgs(t *testing.T) {
 			wantPrintNonIndex: true,
 			wantCourseWanted:  "",
 			wantMaxErrors:     -1,
+			wantTagsWanted:    []string{},
 		},
 		{
 			name:              "print . --verbose --max-errors 12",
@@ -86,6 +91,7 @@ func Test_getArgs(t *testing.T) {
 			wantPrintNonIndex: true,
 			wantCourseWanted:  "",
 			wantMaxErrors:     12,
+			wantTagsWanted:    []string{},
 		},
 		{
 			name:              "print . --verbose --max-errors 12 a1.1",
@@ -98,6 +104,7 @@ func Test_getArgs(t *testing.T) {
 			wantPrintNonIndex: true,
 			wantCourseWanted:  "a1.1",
 			wantMaxErrors:     12,
+			wantTagsWanted:    []string{},
 		},
 		{
 			name:        "print . --verbose --max-errors 12 stub a1.1",
@@ -112,10 +119,11 @@ func Test_getArgs(t *testing.T) {
 			wantPrintNonIndex: true,
 			wantCourseWanted:  "a1.1",
 			wantMaxErrors:     12,
+			wantTagsWanted:    []string{},
 		},
 		{
-			name:        "print . --verbose --max-errors 12 stub a1.1",
-			args:        []string{"", "print", ".", "--verbose", "--max-errors", "12", "stub", "a1.1"},
+			name:        "print . --verbose --max-errors 12 --tags 'foo,bar' stub a1.1",
+			args:        []string{"", "print", ".", "--verbose", "--max-errors", "12", "--tags", "foo,bar", "stub", "a1.1"},
 			wantCommand: PrintCommand,
 			wantPath:    ".",
 			wantStatesAllowed: map[pkg.State]struct{}{
@@ -126,12 +134,13 @@ func Test_getArgs(t *testing.T) {
 			wantPrintNonIndex: true,
 			wantCourseWanted:  "a1.1",
 			wantMaxErrors:     12,
+			wantTagsWanted:    []string{"foo", "bar"},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// execute
-			command, path, statesAllowed, verbose, printIndex, printNonIndex, courseWanted, maxErrors := getArgs(tt.args)
+			command, path, statesAllowed, verbose, printIndex, printNonIndex, courseWanted, maxErrors, tagsWanted := getArgs(tt.args)
 
 			// verify
 			assert.Equal(t, tt.wantCommand, command)
@@ -142,6 +151,7 @@ func Test_getArgs(t *testing.T) {
 			assert.Equal(t, tt.wantPrintNonIndex, printNonIndex)
 			assert.Equal(t, tt.wantCourseWanted, courseWanted)
 			assert.Equal(t, tt.wantMaxErrors, maxErrors)
+			assert.Equal(t, tt.wantTagsWanted, tagsWanted)
 		})
 	}
 

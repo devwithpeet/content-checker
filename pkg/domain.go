@@ -346,7 +346,7 @@ func (p Page) String() string {
 		color = cliRed
 	}
 
-	result := fmt.Sprintln("    ", color, p.FileName, "-", p.Content.State, cliReset)
+	result := fmt.Sprintln("    ", color, p.FileName, cliReset, "-", p.Content.State)
 
 	for _, issue := range issues {
 		result += fmt.Sprintln("        - ", issue)
@@ -551,7 +551,7 @@ func (c Courses) Add(filePath, courseFN, chapterFN, pageFN string, content Conte
 							Content:  content,
 							Course:   courseFN,
 							Chapter:  chapterFN,
-							FileName: pageFN,
+							FileName: filePath,
 						},
 					},
 				},
