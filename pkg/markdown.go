@@ -56,10 +56,8 @@ func ParseMarkdown(rawContent string) (Content, error) {
 	headers := getHeaderValues(header)
 	tags := getTags(headers, nil)
 
-	archetype := getValueWithDefault(headers, "archetype", "")
-
 	var content Content
-	if archetype == "chapter" {
+	if getValueWithDefault(headers, "archetype", "") == "chapter" {
 		content.Body = sectionsToIndexBody(sections)
 	} else if sections.HasNonEmpty(sectionDescription) {
 		content.Body = sectionsToPracticeBody(sections)
@@ -75,6 +73,7 @@ func ParseMarkdown(rawContent string) (Content, error) {
 	content.Importance = Importance(getValueWithDefault(headers, "audienceImportance", ""))
 	content.OutsideImportance = Importance(getValueWithDefault(headers, "outsideImportance", ""))
 	content.Tags = tags
+	content.EmptySections = sections.EmptyButPresent(sectionRoot)
 
 	return content, nil
 }
@@ -150,6 +149,18 @@ func (s Sections) HasNonEmpty(title string) bool {
 	}
 
 	return false
+}
+
+func (s Sections) EmptyButPresent(title string) []string {
+	var result []string
+
+	for _, section := range s {
+		if len(section.Content) == 0 {
+			result = append(result, section.Title)
+		}
+	}
+
+	return result
 }
 
 func (s Sections) Get(title string) string {

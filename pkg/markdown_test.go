@@ -206,6 +206,9 @@ Exercises
 						sectionExercises,
 					},
 				},
+				EmptySections: []string{
+					"main video",
+				},
 			},
 		},
 		{
@@ -957,9 +960,10 @@ Exercises
 					},
 					UsefulWithoutVideo: false,
 				},
-				Audience:   All,
-				Importance: Important,
-				Tags:       []string{"linux", "cli"},
+				Audience:      All,
+				Importance:    Important,
+				Tags:          []string{"linux", "cli"},
+				EmptySections: []string{"summary", "main video", "exercises"},
 			},
 		},
 	}

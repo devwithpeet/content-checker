@@ -226,6 +226,7 @@ type Content struct {
 	Importance        Importance
 	OutsideImportance Importance
 	Tags              []string
+	EmptySections     []string
 }
 
 var regexDashes = regexp.MustCompile(`-+-`)
@@ -278,6 +279,10 @@ func (c Content) GetIssues(filePath, course, chapter, page string) []string {
 		if chapter != slug {
 			issues = append(issues, fmt.Sprintf("chapter does not match the slug, file name: %s, chapter: %s, slug: %s", page, chapter, slug))
 		}
+	}
+
+	if c.State == Complete && len(c.EmptySections) > 0 {
+		issues = append(issues, fmt.Sprintf("empty sections: %s", strings.Join(c.EmptySections, ", ")))
 	}
 
 	if _, exists := validAudiences[c.Audience]; !exists {
