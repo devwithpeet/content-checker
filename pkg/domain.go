@@ -231,9 +231,17 @@ type Content struct {
 var regexDashes = regexp.MustCompile(`-+-`)
 var regexSlugReduce = regexp.MustCompile(`[:,/?! ]`)
 var regexSlugRemove = regexp.MustCompile(`[.'"\\]`)
+var regexAbbreviation = regexp.MustCompile(` ([A-Z])\. `)
 
 func slugify(title string) string {
+	for _, match := range regexAbbreviation.FindAllStringSubmatch(title, -1) {
+		title = strings.Replace(title, match[1]+".", match[1], -1)
+	}
+
 	title = strings.ToLower(title)
+	title = strings.Replace(title, "c++", "cpp", -1)
+	title = strings.Replace(title, "(", "", -1)
+	title = strings.Replace(title, ")", "", -1)
 	title = strings.Replace(title, "i/o", "io", -1)
 	title = strings.Replace(title, "#", "-sharp-", -1)
 	title = strings.Replace(title, "&", "-and-", -1)
@@ -362,54 +370,13 @@ func (p Pages) Add(filePath, courseFN, chapterFN, pageFN string, content Content
 }
 
 type Chapter struct {
-	Course   string
-	Chapter  string
-	Pages    Pages
-	prepared bool
-}
-
-func (c *Chapter) Prepare() {
-	if c.prepared {
-		return
-	}
-
-	c.prepared = true
-
-	var (
-		indexPage  *IndexBody
-		pagesExist = false
-		incomplete = false
-	)
-
-	for _, page := range c.Pages {
-		chapter, ok := page.Content.Body.(*IndexBody)
-		if ok {
-			indexPage = chapter
-
-			continue
-		}
-
-		pagesExist = true
-		if page.GetState() != Complete {
-			incomplete = true
-		}
-
-		if incomplete && indexPage != nil {
-			break
-		}
-	}
-
-	if indexPage == nil || !pagesExist || incomplete {
-		return
-	}
-
-	indexPage.SetCompleteState(Complete)
+	Course  string
+	Chapter string
+	Pages   Pages
 }
 
 func (c *Chapter) String(statesAllowed map[State]struct{}, printIndex, printNonIndex bool) string {
 	result := fmt.Sprintln("  ", c.Chapter)
-
-	c.Prepare()
 
 	for _, page := range c.Pages {
 		if !printNonIndex && !strings.HasSuffix(page.FileName, "_index.md") {
@@ -472,12 +439,6 @@ func (c Chapters) Add(filePath, courseFN, chapterFN, pageFN string, content Cont
 type Course struct {
 	Course   string
 	Chapters Chapters
-}
-
-func (c Course) Prepare() {
-	for _, chapter := range c.Chapters {
-		chapter.Prepare()
-	}
 }
 
 func (c Course) String(statesAllowed map[State]struct{}, printIndex, printNonIndex bool) string {

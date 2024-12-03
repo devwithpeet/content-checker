@@ -131,8 +131,8 @@ Episodes
 			want: Content{
 				Title: "Prepare",
 				Body: &IndexBody{
-					HasEpisodes:   true,
-					CompleteState: Incomplete,
+					HasEpisodes: true,
+					State:       Incomplete,
 				},
 			},
 		},
@@ -153,8 +153,8 @@ Episodes
 				Title: "Prepare",
 				State: Complete,
 				Body: &IndexBody{
-					HasEpisodes:   true,
-					CompleteState: Incomplete,
+					HasEpisodes: true,
+					State:       Incomplete,
 				},
 			},
 		},

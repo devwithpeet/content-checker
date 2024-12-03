@@ -393,6 +393,16 @@ func Test_slugify(t *testing.T) {
 			want: "c-sharp-basics",
 		},
 		{
+			name: "Foo AB. Bar",
+			args: args{title: "Foo AB. Bar"},
+			want: "foo-ab-dot-bar",
+		},
+		{
+			name: "Terry A. Davis",
+			args: args{title: "Terry A. Davis"},
+			want: "terry-a-davis",
+		},
+		{
 			name: ".net",
 			args: args{title: "About the .NET Framework?"},
 			want: "about-the-dot-net-framework",

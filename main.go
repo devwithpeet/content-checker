@@ -13,7 +13,7 @@ import (
 
 type Command string
 
-const Version = "0.3.4"
+const Version = "0.3.5"
 
 const (
 	PrintCommand   Command = "print"
@@ -119,8 +119,6 @@ func main() {
 
 	// fetch markdown files
 	courses, count := CrawlMarkdownFiles(files, maxErrors, tagsWanted, verbose)
-
-	Prepare(courses)
 
 	switch action {
 	case VersionCommand:
@@ -240,12 +238,6 @@ func CrawlMarkdownFiles(matches []string, maxErrors int, tagsWanted []string, ve
 	}
 
 	return result, count
-}
-
-func Prepare(courses pkg.Courses) {
-	for _, course := range courses {
-		course.Prepare()
-	}
 }
 
 func Print(count int, courses pkg.Courses, statesAllowed map[pkg.State]struct{}, printIndex, printNonIndex bool) {

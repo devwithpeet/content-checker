@@ -465,8 +465,8 @@ func sectionsToDefaultBody(sections Sections, tags []string) DefaultBody {
 
 func sectionsToIndexBody(sections Sections) *IndexBody {
 	return &IndexBody{
-		HasEpisodes:   sections.HasNonEmpty(sectionEpisodes),
-		CompleteState: Incomplete,
+		HasEpisodes: sections.HasNonEmpty(sectionEpisodes),
+		State:       Incomplete,
 	}
 }
 

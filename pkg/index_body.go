@@ -3,8 +3,8 @@ package pkg
 import "errors"
 
 type IndexBody struct {
-	HasEpisodes   bool
-	CompleteState State
+	HasEpisodes bool
+	State       State
 }
 
 func (ib *IndexBody) GetIssues(_ State) []string {
@@ -13,14 +13,14 @@ func (ib *IndexBody) GetIssues(_ State) []string {
 
 func (ib *IndexBody) CalculateState() (State, error) {
 	if ib.HasEpisodes {
-		return ib.CompleteState, nil
+		return ib.State, nil
 	}
 
 	return Stub, errors.New("no episodes")
 }
 
-func (ib *IndexBody) SetCompleteState(state State) {
-	ib.CompleteState = state
+func (ib *IndexBody) SetState(state State) {
+	ib.State = state
 }
 
 func (ib *IndexBody) IsSlugForced() bool {
