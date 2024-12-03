@@ -28,13 +28,6 @@ func TestParseMarkdown(t *testing.T) {
 		want Content
 	}{
 		{
-			name: "empty",
-			args: args{
-				rawContent: ``,
-			},
-			want: Content{},
-		},
-		{
 			name: "title-only",
 			args: args{
 				rawContent: `+++
@@ -72,13 +65,6 @@ state = "incomplete"
 					SectionTitles: []string{},
 				},
 			},
-		},
-		{
-			name: "empty-chapter",
-			args: args{
-				rawContent: ``,
-			},
-			want: Content{},
 		},
 		{
 			name: "title-only-chapter",
@@ -120,6 +106,7 @@ state = "incomplete"
 			name: "complete-chapter-without-state",
 			args: args{
 				rawContent: `+++
+archetype = "chapter"
 title = "Prepare"
 +++
 Episodes
@@ -140,6 +127,7 @@ Episodes
 			name: "complete-chapter-with-state",
 			args: args{
 				rawContent: `+++
+archetype = "chapter"
 title = "Prepare"
 state = "complete"
 +++

@@ -13,7 +13,7 @@ import (
 
 type Command string
 
-const Version = "0.3.5"
+const Version = "0.3.6"
 
 const (
 	PrintCommand   Command = "print"
@@ -191,6 +191,10 @@ func CrawlMarkdownFiles(matches []string, maxErrors int, tagsWanted []string, ve
 		rawContent, err := os.ReadFile(filePath)
 		if err != nil {
 			panic("cannot open file: " + filePath)
+		}
+
+		if len(rawContent) == 0 {
+			panic("empty file: " + filePath)
 		}
 
 		content, err := pkg.ParseMarkdown(string(rawContent))

@@ -41,7 +41,7 @@ const markdownHeaderLength = 3
 
 func ParseMarkdown(rawContent string) (Content, error) {
 	if len(rawContent) < markdownHeaderLength*2 {
-		return Content{}, nil
+		return Content{}, errors.New("markdown too short")
 	}
 
 	// Convert DOS/Windows line endings (\r\n) into Linux/Unix line endings
@@ -53,10 +53,13 @@ func ParseMarkdown(rawContent string) (Content, error) {
 	}
 
 	sections := extractSections(body)
-	tags := getHeaderValues(header, "tags", nil)
+	headers := getHeaderValues(header)
+	tags := getTags(headers, nil)
+
+	archetype := getValueWithDefault(headers, "archetype", "")
 
 	var content Content
-	if sections.HasNonEmpty(sectionEpisodes) {
+	if archetype == "chapter" {
 		content.Body = sectionsToIndexBody(sections)
 	} else if sections.HasNonEmpty(sectionDescription) {
 		content.Body = sectionsToPracticeBody(sections)
@@ -64,19 +67,23 @@ func ParseMarkdown(rawContent string) (Content, error) {
 		content.Body = sectionsToDefaultBody(sections, tags)
 	}
 
-	content.Slug = getHeaderValue(header, "slug", "")
-	content.Weight = getHeaderValue(header, "weight", "")
-	content.Title = getHeaderValue(header, "title", "")
-	content.State = State(getHeaderValue(header, "state", ""))
-	content.Audience = Audience(getHeaderValue(header, "audience", ""))
-	content.Importance = Importance(getHeaderValue(header, "audienceImportance", ""))
-	content.OutsideImportance = Importance(getHeaderValue(header, "outsideImportance", ""))
+	content.Slug = getValueWithDefault(headers, "slug", "")
+	content.Weight = getValueWithDefault(headers, "weight", "")
+	content.Title = getValueWithDefault(headers, "title", "")
+	content.State = State(getValueWithDefault(headers, "state", ""))
+	content.Audience = Audience(getValueWithDefault(headers, "audience", ""))
+	content.Importance = Importance(getValueWithDefault(headers, "audienceImportance", ""))
+	content.OutsideImportance = Importance(getValueWithDefault(headers, "outsideImportance", ""))
 	content.Tags = tags
 
 	return content, nil
 }
 
 func splitMarkdown(in string) (string, string, error) {
+	if len(in) < 4 {
+		return "", "", errors.New("markdown too short")
+	}
+
 	// Handle TOML front matter
 	if in[:4] == "+++\n" {
 		if idx := strings.Index(in[4:], "\n+++"); idx != -1 {
@@ -89,7 +96,9 @@ func splitMarkdown(in string) (string, string, error) {
 
 var regexHeader = regexp.MustCompile(`^(\S+)\s*=\s*(.*)$`)
 
-func getHeaderValue(header, key, defaultValue string) string {
+func getHeaderValues(header string) map[string]string {
+	values := make(map[string]string)
+
 	for _, row := range strings.Split(header, "\n") {
 		matches := regexHeader.FindStringSubmatch(row)
 
@@ -97,32 +106,30 @@ func getHeaderValue(header, key, defaultValue string) string {
 			continue
 		}
 
-		if matches[1] == key {
-			return strings.Trim(matches[2], `'"`)
-		}
+		values[matches[1]] = strings.Trim(matches[2], `'"`)
 	}
 
-	return defaultValue
+	return values
 }
 
-func getHeaderValues(header, key string, defaultValue []string) []string {
-	for _, row := range strings.Split(header, "\n") {
-		matches := regexHeader.FindStringSubmatch(row)
+func getTags(values map[string]string, defaultValue []string) []string {
+	tagsRaw, ok := values["tags"]
+	if !ok {
+		return defaultValue
+	}
 
-		if len(matches) != 3 {
-			continue
-		}
+	var tags []string
 
-		if matches[1] != key {
-			continue
-		}
+	for _, part := range strings.Split(strings.Trim(tagsRaw, `[]`), ",") {
+		tags = append(tags, strings.Trim(part, ` '"`))
+	}
 
-		var tags []string
-		for _, part := range strings.Split(strings.Trim(matches[2], `[]`), ",") {
-			tags = append(tags, strings.Trim(part, ` '"`))
-		}
+	return tags
+}
 
-		return tags
+func getValueWithDefault(values map[string]string, key, defaultValue string) string {
+	if value, ok := values[key]; ok {
+		return value
 	}
 
 	return defaultValue
