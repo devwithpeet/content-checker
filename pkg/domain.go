@@ -5,6 +5,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/gosimple/slug"
 )
 
 type Color string
@@ -254,6 +256,8 @@ func slugify(title string) string {
 	title = regexSlugRemove.ReplaceAllString(title, "")
 	title = regexSlugReduce.ReplaceAllString(title, "-")
 	title = regexDashes.ReplaceAllString(title, "-")
+
+	title = slug.Make(title)
 
 	return strings.Trim(title, "-")
 }
