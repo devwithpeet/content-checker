@@ -452,17 +452,24 @@ func (c *Chapter) GetErrors() []string {
 func (c *Chapter) GetPageOrderIssues() []string {
 	seen := make(map[int][]string, len(c.Pages))
 	largestWeight := 0
+	var issues []string
 
 	for _, page := range c.Pages {
+		if page.Title == "_index.md" {
+			continue
+		}
+
 		weight := page.GetWeight()
 		seen[weight] = append(seen[weight], page.FileName)
 
 		if weight > largestWeight {
 			largestWeight = weight
 		}
-	}
 
-	var issues []string
+		if weight%10 != 0 {
+			issues = append(issues, fmt.Sprintf("weird weight: %d (%s)", weight, c.Chapter))
+		}
+	}
 
 	if largestWeight < 1 {
 		issues = append(issues, fmt.Sprintf("no pages found in chapter (%s)", c.Chapter))
