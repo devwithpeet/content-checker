@@ -3,6 +3,7 @@ package pkg
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -340,6 +341,17 @@ func (p Page) GetErrors() []string {
 	return errors
 }
 
+func (p Page) GetWeight() int {
+	rawWeight := p.Content.Weight
+
+	val, err := strconv.Atoi(rawWeight)
+	if err != nil {
+		return 0
+	}
+
+	return val
+}
+
 func (p Page) GetState() State {
 	return p.Content.State
 }
@@ -404,6 +416,25 @@ func (c *Chapter) String(statesAllowed map[State]struct{}, printIndex, printNonI
 	return result
 }
 
+func (c *Chapter) GetWeight() int {
+	for _, page := range c.Pages {
+		if page.Title != "_index.md" {
+			continue
+		}
+
+		rawWeight := page.Content.Weight
+
+		val, err := strconv.Atoi(rawWeight)
+		if err != nil {
+			return 0
+		}
+
+		return val
+	}
+
+	return 0
+}
+
 func (c *Chapter) GetErrors() []string {
 	var errors []string
 
@@ -412,6 +443,46 @@ func (c *Chapter) GetErrors() []string {
 	}
 
 	return errors
+}
+
+func (c *Chapter) GetPageOrderIssues() []string {
+	seen := make(map[int][]string, len(c.Pages))
+	largestWeight := 0
+
+	for _, page := range c.Pages {
+		weight := page.GetWeight()
+		seen[weight] = append(seen[weight], page.FileName)
+
+		if weight > largestWeight {
+			largestWeight = weight
+		}
+	}
+
+	var issues []string
+
+	if largestWeight < 1 {
+		issues = append(issues, fmt.Sprintf("no pages found in chapter (%s)", c.Chapter))
+	}
+
+	var missing []int
+	for i := 1; i <= largestWeight; i++ {
+		if _, ok := seen[i]; !ok {
+			if i%10 == 0 {
+				missing = append(missing, i)
+				continue
+			}
+		}
+
+		if len(seen[i]) > 1 {
+			issues = append(issues, fmt.Sprintf("duplicate pages with weight %d: %s (%s)", i, strings.Join(seen[i], ", "), c.Chapter))
+		}
+	}
+
+	if len(missing) > 0 {
+		issues = append(issues, fmt.Sprintf("missing pages with weight %v (%s)", missing, c.Chapter))
+	}
+
+	return issues
 }
 
 type Chapters []*Chapter
@@ -454,6 +525,55 @@ func (c Course) String(statesAllowed map[State]struct{}, printIndex, printNonInd
 	}
 
 	return result
+}
+
+func (c Course) GetChapterOrderIssues() []string {
+	seen := make(map[int][]string, len(c.Chapters))
+	largestWeight := 0
+
+	for _, chapter := range c.Chapters {
+		weight := chapter.GetWeight()
+		seen[weight] = append(seen[weight], chapter.Chapter)
+
+		if weight > largestWeight {
+			largestWeight = weight
+		}
+	}
+
+	var issues []string
+
+	if largestWeight < 1 {
+		issues = append(issues, fmt.Sprintf("no chapters found in course (%s)", c.Course))
+	}
+
+	var missing []int
+	for i := 1; i <= largestWeight; i++ {
+		if _, ok := seen[i]; !ok {
+			missing = append(missing, i)
+
+			continue
+		}
+
+		if len(seen[i]) > 1 {
+			issues = append(issues, fmt.Sprintf("duplicate chapters with weight %d: %s (%s)", i, strings.Join(seen[i], ", "), c.Course))
+		}
+	}
+
+	if len(missing) > 0 {
+		issues = append(issues, fmt.Sprintf("missing chapter with weight %v (%s)", missing, c.Course))
+	}
+
+	return issues
+}
+
+func (c Course) GetPageOrderIssues() []string {
+	var issues []string
+
+	for _, chapter := range c.Chapters {
+		issues = append(issues, chapter.GetPageOrderIssues()...)
+	}
+
+	return issues
 }
 
 func (c Course) GetErrors() []string {

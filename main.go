@@ -13,13 +13,15 @@ import (
 
 type Command string
 
-const Version = "0.3.7"
+const Version = "0.4.0"
 
 const (
-	PrintCommand   Command = "print"
-	ErrorsCommand  Command = "errors"
-	StatsCommand   Command = "stats"
-	VersionCommand Command = "version"
+	PrintCommand             Command = "print"
+	ErrorsCommand            Command = "errors"
+	StatsCommand             Command = "stats"
+	VersionCommand           Command = "version"
+	CheckPageOrderCommand    Command = "check-page-order"
+	CheckChapterOrderCommand Command = "check-chapter-order"
 )
 
 func getArgs(args []string) (Command, string, map[pkg.State]struct{}, bool, bool, bool, string, int, []string) {
@@ -132,6 +134,12 @@ func main() {
 
 	case StatsCommand:
 		courses.Stats()
+
+	case CheckChapterOrderCommand:
+		CheckChapterOrder(count, courses)
+
+	case CheckPageOrderCommand:
+		CheckPageOrder(count, courses)
 
 	default:
 		panic("unknown command: " + string(action))
@@ -249,6 +257,43 @@ func Print(count int, courses pkg.Courses, statesAllowed map[pkg.State]struct{},
 
 	for _, course := range courses {
 		fmt.Print(course.String(statesAllowed, printIndex, printNonIndex))
+	}
+}
+
+func CheckChapterOrder(count int, courses pkg.Courses) {
+	fmt.Println("Processed", count, "markdown files")
+
+	for _, course := range courses {
+		issues := course.GetChapterOrderIssues()
+
+		if len(issues) == 0 {
+			continue
+		}
+
+		fmt.Println(course.Course)
+		fmt.Println(strings.Repeat("=", len(course.Course)))
+		fmt.Println(strings.Join(issues, "\n"))
+		fmt.Println()
+		fmt.Println(strings.Join(issues, "\n"))
+		fmt.Println()
+	}
+}
+
+func CheckPageOrder(count int, courses pkg.Courses) {
+	fmt.Println("Processed", count, "markdown files")
+
+	for _, course := range courses {
+		issues := course.GetPageOrderIssues()
+
+		if len(issues) == 0 {
+			continue
+		}
+
+		fmt.Println(course.Course)
+		fmt.Println(strings.Repeat("=", len(course.Course)))
+		fmt.Println()
+		fmt.Println(strings.Join(issues, "\n"))
+		fmt.Println()
 	}
 }
 
