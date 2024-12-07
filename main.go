@@ -22,6 +22,7 @@ const (
 	VersionCommand           Command = "version"
 	CheckPageOrderCommand    Command = "check-page-order"
 	CheckChapterOrderCommand Command = "check-chapter-order"
+	CheckLinksCommand        Command = "check-links"
 )
 
 func getArgs(args []string) (Command, string, map[pkg.State]struct{}, bool, bool, bool, string, int, []string) {
@@ -140,6 +141,9 @@ func main() {
 
 	case CheckPageOrderCommand:
 		CheckPageOrder(count, courses)
+
+	case CheckLinksCommand:
+		CheckLinks(count, courses)
 
 	default:
 		panic("unknown command: " + string(action))
@@ -294,6 +298,25 @@ func CheckPageOrder(count int, courses pkg.Courses) {
 		fmt.Println()
 		fmt.Println(strings.Join(issues, "\n"))
 		fmt.Println()
+	}
+}
+
+func CheckLinks(count int, courses pkg.Courses) {
+	fmt.Println("Processed", count, "markdown files")
+
+	allLinks := make(map[string][]string)
+	for _, course := range courses {
+		for page, links := range course.GetLinks() {
+			allLinks[page] = links
+		}
+	}
+
+	for page, links := range allLinks {
+		for _, link := range links {
+			if pageLinks, ok := allLinks[link]; !ok {
+				fmt.Println("Check link:", page, "->", pageLinks)
+			}
+		}
 	}
 }
 

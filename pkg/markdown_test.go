@@ -548,6 +548,9 @@ Example output:
 				Audience:   All,
 				Importance: Important,
 				Tags:       []string{"vim", "practice"},
+				Links: []string{
+					"/a1.1/practice-data-cleanup.sql",
+				},
 			},
 		},
 		{
@@ -601,6 +604,9 @@ Related Links
 				Audience:   All,
 				Importance: Relevant,
 				Tags:       []string{"career", "learning", "no-exercise", "useful-without-video"},
+				Links: []string{
+					"https://exercism.org/",
+				},
 			},
 		},
 		{
@@ -641,27 +647,6 @@ Topics
 
 - [Harvard Mark I](https://en.wikipedia.org/wiki/Harvard_Mark_I) - 1944, The first programmable computer
 - [Mechanical relay](https://en.wikipedia.org/wiki/Relay) - An electrically operated switch
-- [Grace Hopper](https://en.wikipedia.org/wiki/Grace_Hopper) - The inventor of the compiler
-- [John Ambrose Fleming](https://en.wikipedia.org/wiki/John_Ambrose_Fleming) - The inventor of the vacuum tube
-- [Vacuum tube](https://en.wikipedia.org/wiki/Vacuum_tube) - An electronic device used to control the flow of electric current
-- [Diode](https://en.wikipedia.org/wiki/Diode) - A semiconductor device used to control the flow of electric current
-- [Lee de Forest](https://en.wikipedia.org/wiki/Lee_de_Forest) - The inventor of the triode
-- [Colossus](https://en.wikipedia.org/wiki/Colossus_computer) - 1943, The first programmable digital computer
-- [Bill Tutte](https://en.wikipedia.org/wiki/Bill_Tutte) - The codebreaker who cracked the German Lorenz cipher
-- [Tommy Flowers](https://en.wikipedia.org/wiki/Tommy_Flowers) - The engineer who built the Colossus
-- [Alan Turing](https://en.wikipedia.org/wiki/Alan_Turing) - The father of computer science
-- [The Bombe](https://en.wikipedia.org/wiki/Bombe) - 1940, A device used to break the German Enigma code
-- [Enigma machine](https://en.wikipedia.org/wiki/Enigma_machine) - 1930, A German cipher machine used by soldiers
-- [Lorenz](https://en.wikipedia.org/wiki/Lorenz_cipher) - A German cipher machine used by high-command
-- [ENIAC](https://en.wikipedia.org/wiki/ENIAC) - 1945, The first general-purpose computer
-- [John Mauchly](https://en.wikipedia.org/wiki/John_Mauchly) - The co-inventor of the ENIAC
-- [J. Presper Eckert](https://en.wikipedia.org/wiki/J._Presper_Eckert) - The co-inventor of the ENIAC
-- [Transistor](https://en.wikipedia.org/wiki/Transistor) - A semiconductor device used to amplify or switch electronic signals
-- [William Shockley](https://en.wikipedia.org/wiki/William_Shockley) - The co-inventor of the transistor
-- [John Bardeen](https://en.wikipedia.org/wiki/John_Bardeen) - The co-inventor of the transistor
-- [Walter Brattain](https://en.wikipedia.org/wiki/Walter_Houser_Brattain) - The co-inventor of the transistor
-- [Gate electrode](https://en.wikipedia.org/wiki/Gate_(transistor)) - The electrode that controls the flow of electric current
-- [Silicon Valley](https://en.wikipedia.org/wiki/Silicon_Valley) - The center of the computer industry
 
 Related Videos
 --------------
@@ -853,6 +838,12 @@ probably my favorite video recommended on this page.
 				Audience:   All,
 				Importance: Optional,
 				Tags:       []string{"computer-science", "no-exercise"},
+				Links: []string{
+					"https://about.me/carrieannephilbin",
+					"https://www.youtube.com/@crashcourse",
+					"https://en.wikipedia.org/wiki/Harvard_Mark_I",
+					"https://en.wikipedia.org/wiki/Relay",
+				},
 			},
 		},
 		{
@@ -880,27 +871,6 @@ Topics
 
 - [which](https://linux.die.net/man/1/which)
 - [ping](https://linux.die.net/man/1/ping)
-- [whoami](https://linux.die.net/man/1/whoami)
-- [whatis](https://linux.die.net/man/1/whatis)
-- [find](https://linux.die.net/man/1/find)
-- [uname](https://linux.die.net/man/1/uname)
-- [lsb_release](https://linux.die.net/man/1/lsb_release)
-- [curl](https://linux.die.net/man/1/curl)
-- [wget](https://linux.die.net/man/1/wget)
-- [httping](https://linux.die.net/man/1/httping)
-- [alias](https://linux.die.net/man/1/alias)
-- [unalias](https://linux.die.net/man/1/unalias)
-- [wc](https://linux.die.net/man/1/wc)
-- [cut](https://linux.die.net/man/1/cut)
-- [awk](https://linux.die.net/man/1/awk)
-- [sed](https://linux.die.net/man/1/sed)
-- [pgrep](https://linux.die.net/man/1/pgrep)
-- [fuser](https://linux.die.net/man/1/fuser)
-- [rsync](https://linux.die.net/man/1/rsync)
-- [tar](https://linux.die.net/man/1/tar)
-- [gzip](https://linux.die.net/man/1/gzip)
-- [lsof](https://linux.die.net/man/1/lsof)
-- [screen](https://linux.die.net/man/1/screen)
 
 Main Video
 ----------
@@ -964,6 +934,10 @@ Exercises
 				Importance:    Important,
 				Tags:          []string{"linux", "cli"},
 				EmptySections: []string{"summary", "main video", "exercises"},
+				Links: []string{
+					"https://linux.die.net/man/1/which",
+					"https://linux.die.net/man/1/ping",
+				},
 			},
 		},
 	}

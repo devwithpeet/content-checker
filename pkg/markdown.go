@@ -74,6 +74,7 @@ func ParseMarkdown(rawContent string) (Content, error) {
 	content.OutsideImportance = Importance(getValueWithDefault(headers, "outsideImportance", ""))
 	content.Tags = tags
 	content.EmptySections = sections.EmptyButPresent(sectionRoot)
+	content.Links = getLinks(body)
 
 	return content, nil
 }
@@ -132,6 +133,19 @@ func getValueWithDefault(values map[string]string, key, defaultValue string) str
 	}
 
 	return defaultValue
+}
+
+var linkRegex = regexp.MustCompile(`\[(.*?)\]\((.*?)\)`)
+
+func getLinks(body string) []string {
+	var links []string
+
+	finds := linkRegex.FindAllStringSubmatch(body, -1)
+	for _, row := range finds {
+		links = append(links, row[2])
+	}
+
+	return links
 }
 
 type Section struct {
