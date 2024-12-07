@@ -142,7 +142,15 @@ func getLinks(body string) []string {
 
 	finds := linkRegex.FindAllStringSubmatch(body, -1)
 	for _, row := range finds {
-		links = append(links, row[2])
+		link := row[2]
+		if strings.Index(link, "?") > 0 {
+			link = link[:strings.Index(link, "?")]
+		}
+		if strings.Index(link, "#") > 0 {
+			link = link[:strings.Index(link, "#")]
+		}
+
+		links = append(links, link)
 	}
 
 	return links

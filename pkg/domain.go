@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"fmt"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -385,6 +386,22 @@ func (p Page) String() string {
 	return result
 }
 
+func (p Page) GetInternalLink() string {
+	filePath := p.FileName
+
+	if strings.HasPrefix(filePath, "content/") {
+		filePath = strings.TrimPrefix(filePath, "content")
+	}
+
+	if strings.HasSuffix(filePath, "_index.md") {
+		return strings.TrimSuffix(filePath, "_index.md")
+	}
+
+	filename := filepath.Base(filePath)
+
+	return strings.Replace(filePath, filename, p.Content.Slug, 1) + "/"
+}
+
 type Pages []Page
 
 func (p Pages) Add(filePath, courseFN, chapterFN, pageFN string, content Content) Pages {
@@ -690,6 +707,20 @@ func (c Courses) Add(filePath, courseFN, chapterFN, pageFN string, content Conte
 				},
 			},
 		})
+}
+
+func (c Courses) GetValidInternalLinks() map[string]struct{} {
+	pages := make(map[string]struct{})
+
+	for _, course := range c {
+		for _, chapter := range course.Chapters {
+			for _, page := range chapter.Pages {
+				pages[page.GetInternalLink()] = struct{}{}
+			}
+		}
+	}
+
+	return pages
 }
 
 type CourseStat struct {
