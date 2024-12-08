@@ -10,11 +10,12 @@ import (
 	"strings"
 
 	"github.com/devwithpeet/content-checker/pkg"
+	"github.com/peteraba/sortedmap"
 )
 
 type Command string
 
-const Version = "0.5.0"
+const Version = "0.5.2"
 
 const (
 	PrintCommand             Command = "print"
@@ -319,7 +320,7 @@ func CheckLinks(count int, courses pkg.Courses, verbose bool) {
 	fmt.Println("Processed", count, "markdown files")
 
 	fileLinks := make(map[string][]string)
-	internalLinks := make(map[string][]string)
+	internalLinks := sortedmap.New[string, []string]()
 	externalLinks := make(map[string]map[string][]string)
 	for _, course := range courses {
 		for page, link := range course.GetLinks() {
@@ -330,8 +331,10 @@ func CheckLinks(count int, courses pkg.Courses, verbose bool) {
 
 				if ext != "" {
 					fileLinks[link] = append(fileLinks[link], page)
+				} else if internalLinks.Has(link) {
+					internalLinks.Set(link, append(internalLinks.MustGet(link), page))
 				} else {
-					internalLinks[link] = append(internalLinks[link], page)
+					internalLinks.Set(link, []string{page})
 				}
 
 				continue
@@ -352,11 +355,11 @@ func CheckLinks(count int, courses pkg.Courses, verbose bool) {
 	checkFileLinks(fileLinks)
 }
 
-func checkInternalLinks(links map[string][]string, courses pkg.Courses, verbose bool) {
+func checkInternalLinks(links *sortedmap.SortedMap[string, []string], courses pkg.Courses, verbose bool) {
 	validInternalLinks := courses.GetValidInternalLinks()
 
 	notFound := 0
-	for link, pages := range links {
+	for link, pages := range links.Items() {
 		if _, ok := validInternalLinks[link]; ok {
 			continue
 		}
