@@ -43,6 +43,7 @@ title = "Prepare"
 					},
 					SectionTitles: []string{},
 				},
+				Links: map[string]string{},
 			},
 		},
 		{
@@ -64,6 +65,7 @@ state = "incomplete"
 					},
 					SectionTitles: []string{},
 				},
+				Links: map[string]string{},
 			},
 		},
 		{
@@ -82,6 +84,7 @@ title = "Prepare"
 					},
 					SectionTitles: []string{},
 				},
+				Links: map[string]string{},
 			},
 		},
 		{
@@ -100,6 +103,7 @@ state = "incomplete"
 					},
 					SectionTitles: []string{},
 				},
+				Links: map[string]string{},
 			},
 		},
 		{
@@ -121,6 +125,7 @@ Episodes
 					HasEpisodes: true,
 					State:       Incomplete,
 				},
+				Links: map[string]string{},
 			},
 		},
 		{
@@ -144,6 +149,7 @@ Episodes
 					HasEpisodes: true,
 					State:       Incomplete,
 				},
+				Links: map[string]string{},
 			},
 		},
 		{
@@ -209,6 +215,7 @@ Exercises
 				EmptySections: []string{
 					"main video",
 				},
+				Links: map[string]string{},
 			},
 		},
 		{
@@ -273,6 +280,7 @@ Exercises
 						sectionExercises,
 					},
 				},
+				Links: map[string]string{},
 			},
 		},
 		{
@@ -326,6 +334,7 @@ state = "complete"
 						sectionRelatedLinks,
 					},
 				},
+				Links: map[string]string{},
 			},
 		},
 		{
@@ -385,6 +394,7 @@ weight = 9
 						sectionExercises,
 					},
 				},
+				Links: map[string]string{},
 			},
 		},
 		{
@@ -444,6 +454,7 @@ on your choice of text editor. :D
 				Audience:   All,
 				Importance: Optional,
 				Tags:       []string{"no-exercise", "fun", "vim", "vscode", "goland", "jetbrains"},
+				Links:      map[string]string{},
 			},
 		},
 		{
@@ -548,8 +559,8 @@ Example output:
 				Audience:   All,
 				Importance: Important,
 				Tags:       []string{"vim", "practice"},
-				Links: []string{
-					"/a1.1/practice-data-cleanup.sql",
+				Links: map[string]string{
+					"18:25": "/a1.1/practice-data-cleanup.sql",
 				},
 			},
 		},
@@ -604,8 +615,8 @@ Related Links
 				Audience:   All,
 				Importance: Relevant,
 				Tags:       []string{"career", "learning", "no-exercise", "useful-without-video"},
-				Links: []string{
-					"https://exercism.org/",
+				Links: map[string]string{
+					"25:13": "https://exercism.org/",
 				},
 			},
 		},
@@ -838,11 +849,11 @@ probably my favorite video recommended on this page.
 				Audience:   All,
 				Importance: Optional,
 				Tags:       []string{"computer-science", "no-exercise"},
-				Links: []string{
-					"https://about.me/carrieannephilbin",
-					"https://www.youtube.com/@crashcourse",
-					"https://en.wikipedia.org/wiki/Harvard_Mark_I",
-					"https://en.wikipedia.org/wiki/Relay",
+				Links: map[string]string{
+					"20:28": "https://about.me/carrieannephilbin",
+					"20:83": "https://www.youtube.com/@crashcourse",
+					"34:19": "https://en.wikipedia.org/wiki/Harvard_Mark_I",
+					"35:21": "https://en.wikipedia.org/wiki/Relay",
 				},
 			},
 		},
@@ -934,9 +945,9 @@ Exercises
 				Importance:    Important,
 				Tags:          []string{"linux", "cli"},
 				EmptySections: []string{"summary", "main video", "exercises"},
-				Links: []string{
-					"https://linux.die.net/man/1/which",
-					"https://linux.die.net/man/1/ping",
+				Links: map[string]string{
+					"21:10": "https://linux.die.net/man/1/which",
+					"22:9":  "https://linux.die.net/man/1/ping",
 				},
 			},
 		},

@@ -74,7 +74,7 @@ func ParseMarkdown(rawContent string) (Content, error) {
 	content.OutsideImportance = Importance(getValueWithDefault(headers, "outsideImportance", ""))
 	content.Tags = tags
 	content.EmptySections = sections.EmptyButPresent(sectionRoot)
-	content.Links = getLinks(body)
+	content.Links = getLinks(rawContent)
 
 	return content, nil
 }
@@ -137,20 +137,23 @@ func getValueWithDefault(values map[string]string, key, defaultValue string) str
 
 var linkRegex = regexp.MustCompile(`\[(.*?)\]\((.*?)\)`)
 
-func getLinks(body string) []string {
-	var links []string
+func getLinks(body string) map[string]string {
+	links := make(map[string]string)
 
-	finds := linkRegex.FindAllStringSubmatch(body, -1)
-	for _, row := range finds {
-		link := row[2]
-		if strings.Index(link, "?") > 0 {
-			link = link[:strings.Index(link, "?")]
-		}
-		if strings.Index(link, "#") > 0 {
-			link = link[:strings.Index(link, "#")]
-		}
+	for i, row := range strings.Split(body, EOL) {
+		finds := linkRegex.FindAllStringSubmatchIndex(row, -1)
+		for _, found := range finds {
+			index := fmt.Sprintf("%d:%d", i+1, found[4])
+			link := row[found[4]:found[5]]
+			if strings.Index(link, "?") > 0 {
+				link = link[:strings.Index(link, "?")]
+			}
+			if strings.Index(link, "#") > 0 {
+				link = link[:strings.Index(link, "#")]
+			}
 
-		links = append(links, link)
+			links[index] = link
+		}
 	}
 
 	return links

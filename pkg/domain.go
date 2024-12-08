@@ -231,7 +231,7 @@ type Content struct {
 	OutsideImportance Importance
 	Tags              []string
 	EmptySections     []string
-	Links             []string
+	Links             map[string]string
 }
 
 var regexDashes = regexp.MustCompile(`-+-`)
@@ -514,11 +514,13 @@ func (c *Chapter) GetPageOrderIssues() []string {
 	return issues
 }
 
-func (c *Chapter) GetLinks() map[string][]string {
-	links := make(map[string][]string)
+func (c *Chapter) GetLinks() map[string]string {
+	links := make(map[string]string)
 
 	for _, page := range c.Pages {
-		links[page.FileName] = page.Content.Links
+		for index, link := range page.Content.Links {
+			links[page.FileName+":"+index] = link
+		}
 	}
 
 	return links
@@ -615,25 +617,12 @@ func (c Course) GetPageOrderIssues() []string {
 	return issues
 }
 
-func (c Course) GetLinks() map[string][]string {
-	allLinks := make(map[string][]string)
+func (c Course) GetLinks() map[string]string {
+	allLinks := make(map[string]string)
 
 	for _, chapter := range c.Chapters {
-		for page, links := range chapter.GetLinks() {
-			allLinks[page] = links
-		}
-	}
-
-	return allLinks
-}
-
-func (c Course) GetIssues() map[string][]string {
-	allLinks := make(map[string][]string)
-
-	for _, chapter := range c.Chapters {
-		chapterLinks := chapter.GetLinks()
-		for page, links := range chapterLinks {
-			allLinks[page] = links
+		for page, link := range chapter.GetLinks() {
+			allLinks[page] = link
 		}
 	}
 

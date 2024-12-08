@@ -145,10 +145,17 @@ func main() {
 
 	case CheckLinksCommand:
 		if courseWanted != "" {
-			panic("cannot check links for a specific course")
+			fmt.Println("cannot check links for a specific course")
+
+			return
+		}
+		if len(tagsWanted) > 0 {
+			fmt.Println("cannot check links for a specific tag")
+
+			return
 		}
 
-		CheckLinks(count, courses)
+		CheckLinks(count, courses, verbose)
 
 	default:
 		panic("unknown command: " + string(action))
@@ -306,75 +313,71 @@ func CheckPageOrder(count int, courses pkg.Courses) {
 	}
 }
 
-var linkRegex = regexp.MustCompile(`https?://([^//]+)/.*`)
+var linkRegex = regexp.MustCompile(`https?://([^//]+)/?.*`)
 
-func CheckLinks(count int, courses pkg.Courses) {
+func CheckLinks(count int, courses pkg.Courses, verbose bool) {
 	fmt.Println("Processed", count, "markdown files")
 
 	fileLinks := make(map[string][]string)
 	internalLinks := make(map[string][]string)
 	externalLinks := make(map[string]map[string][]string)
 	for _, course := range courses {
-		for page, links := range course.GetLinks() {
-			for _, link := range links {
-				matches := linkRegex.FindStringSubmatch(link)
+		for page, link := range course.GetLinks() {
+			matches := linkRegex.FindStringSubmatch(link)
 
-				if len(matches) < 2 {
-					ext := filepath.Ext(link)
+			if len(matches) < 2 {
+				ext := filepath.Ext(link)
 
-					if ext != "" {
-						fileLinks[link] = append(fileLinks[link], page)
-					} else {
-						internalLinks[link] = append(internalLinks[link], page)
-					}
-
-					continue
+				if ext != "" {
+					fileLinks[link] = append(fileLinks[link], page)
+				} else {
+					internalLinks[link] = append(internalLinks[link], page)
 				}
 
-				domain := matches[1]
-
-				if _, ok := externalLinks[domain]; !ok {
-					externalLinks[domain] = make(map[string][]string)
-				}
-
-				externalLinks[domain][link] = append(externalLinks[domain][link], page)
+				continue
 			}
+
+			domain := matches[1]
+
+			if _, ok := externalLinks[domain]; !ok {
+				externalLinks[domain] = make(map[string][]string)
+			}
+
+			externalLinks[domain][link] = append(externalLinks[domain][link], page)
 		}
 	}
 
-	checkInternalLinks(internalLinks, courses)
+	checkInternalLinks(internalLinks, courses, verbose)
 	// checkExternalLinks(externalLinks)
 	checkFileLinks(fileLinks)
 }
 
-func checkInternalLinks(links map[string][]string, courses pkg.Courses) {
+func checkInternalLinks(links map[string][]string, courses pkg.Courses, verbose bool) {
 	validInternalLinks := courses.GetValidInternalLinks()
 
+	notFound := 0
 	for link, pages := range links {
-		fileName := "content/" + link
-		if _, ok := validInternalLinks[fileName]; ok {
+		if _, ok := validInternalLinks[link]; ok {
 			continue
 		}
 
-		if _, ok := validInternalLinks[fileName+"/"]; ok {
+		if _, ok := validInternalLinks[link+"/"]; ok {
 			continue
 		}
 
-		fmt.Printf("- %s NOT FOUND\n", link)
+		notFound++
+		fmt.Printf("- '%s' NOT FOUND\n", link)
 		for _, page := range pages {
 			fmt.Printf("    - %s\n", page)
 		}
 	}
 
-	maxCount := 10
-	for link := range validInternalLinks {
-		if maxCount == 0 {
-			break
+	fmt.Println("Not found", notFound, "internal links")
+
+	if verbose {
+		for link := range validInternalLinks {
+			fmt.Printf("Found link: '%s'\n", link)
 		}
-
-		maxCount--
-
-		fmt.Println(link)
 	}
 }
 
