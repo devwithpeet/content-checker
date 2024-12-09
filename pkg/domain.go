@@ -10,17 +10,6 @@ import (
 	"github.com/gosimple/slug"
 )
 
-type Color string
-
-const (
-	cliRed    Color = "\x1b[31m"
-	cliYellow Color = "\x1b[33m"
-	cliGreen  Color = "\x1b[32m"
-	cliBlue   Color = "\x1b[34m"
-	cliReset  Color = "\x1b[0m"
-	cliBold   Color = "\x1b[1m"
-)
-
 type State string
 
 const (
@@ -710,94 +699,6 @@ func (c Courses) GetValidInternalLinks() map[string]struct{} {
 	}
 
 	return pages
-}
-
-type CourseStat struct {
-	Title      string
-	Total      int
-	Stub       int
-	Incomplete int
-	Complete   int
-	Errors     int
-}
-
-func (cs *CourseStat) Print(columnWidths [7]int, columnColors [7]Color, total int) {
-	fmt.Printf(
-		"%s | %s | %s | %s | %s | %s | %s\n",
-		column(cs.Title, columnWidths[0], columnColors[0]),
-		column(cs.Total, columnWidths[1], columnColors[1]),
-		column(cs.Stub, columnWidths[2], columnColors[2]),
-		column(cs.Incomplete, columnWidths[3], columnColors[3]),
-		column(cs.Complete, columnWidths[4], columnColors[4]),
-		column(cs.Errors, columnWidths[5], columnColors[5]),
-		column(cs.Total*100/total, columnWidths[6], columnColors[6]),
-	)
-}
-
-func (cs *CourseStat) PrintHead(columnWidths [7]int, columnColors [7]Color) {
-	fmt.Printf(
-		"%s | %s | %s | %s | %s | %s | %s\n",
-		column("Course", columnWidths[0], columnColors[0]),
-		column("All", columnWidths[1], columnColors[1]),
-		column("Stub", columnWidths[2], columnColors[2]),
-		column("Incomplete", columnWidths[3], columnColors[3]),
-		column("Complete", columnWidths[4], columnColors[4]),
-		column("Errors", columnWidths[5], columnColors[5]),
-		column("Percent", columnWidths[6], columnColors[6]),
-	)
-}
-
-func (cs *CourseStat) Line(columnWidths [7]int) {
-	for i, width := range columnWidths {
-		if i == 0 {
-			fmt.Print(strings.Repeat("-", width+1))
-
-			continue
-		}
-
-		fmt.Print("+", strings.Repeat("-", width+2))
-	}
-
-	fmt.Println()
-}
-
-func (cs *CourseStat) Add(stat CourseStat) {
-	cs.Total += stat.Total
-	cs.Stub += stat.Stub
-	cs.Incomplete += stat.Incomplete
-	cs.Complete += stat.Complete
-	cs.Errors += stat.Errors
-}
-
-func NewCourseStat(title string, total, stub, incomplete, complete, errors int) CourseStat {
-	return CourseStat{Title: title, Total: total, Stub: stub, Incomplete: incomplete, Complete: complete, Errors: errors}
-}
-
-func (c Courses) Stats() {
-	columnWidths := [7]int{15, 5, 4, 10, 8, 6, 7}
-	columnColors := [7]Color{cliBold, cliBold, cliBlue, cliYellow, cliGreen, cliRed, cliBold}
-	totalStat := NewCourseStat("Total", 0, 0, 0, 0, 0)
-
-	totalStat.PrintHead(columnWidths, columnColors)
-	totalStat.Line(columnWidths)
-
-	stats := make([]CourseStat, 0, len(c))
-	for _, course := range c {
-		courseAll, courseStub, courseIncomplete, courseComplete, courseErrors := course.Stats()
-
-		newStats := NewCourseStat(course.Course, courseAll, courseStub, courseIncomplete, courseComplete, courseErrors)
-
-		stats = append(stats, newStats)
-
-		totalStat.Add(newStats)
-	}
-
-	for _, stat := range stats {
-		stat.Print(columnWidths, columnColors, totalStat.Total)
-	}
-
-	totalStat.Line(columnWidths)
-	totalStat.Print(columnWidths, columnColors, totalStat.Total)
 }
 
 func column(raw interface{}, width int, color Color) string {

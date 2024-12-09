@@ -8,14 +8,16 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/devwithpeet/content-checker/pkg"
-	"github.com/peteraba/sortedmap"
+	sm "github.com/peteraba/sortedmap"
 )
 
 type Command string
 
-const Version = "0.5.2"
+const Version = "0.7.1"
 
 const (
 	PrintCommand             Command = "print"
@@ -27,7 +29,7 @@ const (
 	CheckLinksCommand        Command = "check-links"
 )
 
-func getArgs(args []string) (Command, string, map[pkg.State]struct{}, bool, bool, bool, string, int, []string) {
+func getArgs(args []string) (Command, string, map[pkg.State]struct{}, bool, bool, bool, string, int, []string, bool) {
 	var err error
 
 	action := PrintCommand
@@ -37,6 +39,7 @@ func getArgs(args []string) (Command, string, map[pkg.State]struct{}, bool, bool
 
 	statesAllowed := map[pkg.State]struct{}{}
 
+	checkExternal := false
 	verbose := false
 	printIndex := false
 	printNonIndex := true
@@ -55,6 +58,8 @@ func getArgs(args []string) (Command, string, map[pkg.State]struct{}, bool, bool
 				printNonIndex = false
 			case "--with-index", "-with-index":
 				printIndex = true
+			case "--check-external", "-check-external":
+				checkExternal = true
 			case "--verbose", "-verbose":
 				verbose = true
 			case "--tags", "-tags":
@@ -110,11 +115,11 @@ func getArgs(args []string) (Command, string, map[pkg.State]struct{}, bool, bool
 		}
 	}
 
-	return action, root, statesAllowed, verbose, printIndex, printNonIndex, courseWanted, maxErrors, tagsWanted
+	return action, root, statesAllowed, verbose, printIndex, printNonIndex, courseWanted, maxErrors, tagsWanted, checkExternal
 }
 
 func main() {
-	action, root, statesAllowed, verbose, printIndex, printNonIndex, courseWanted, maxErrors, tagsWanted := getArgs(os.Args)
+	action, root, statesAllowed, verbose, printIndex, printNonIndex, courseWanted, maxErrors, tagsWanted, checkExternal := getArgs(os.Args)
 
 	// collect markdown files
 	files, err := findFiles(root, courseWanted, verbose)
@@ -122,13 +127,17 @@ func main() {
 		panic("cannot find files in root: " + root + ", error: " + err.Error())
 	}
 
-	// fetch markdown files
-	courses, count := CrawlMarkdownFiles(files, maxErrors, tagsWanted, verbose)
-
-	switch action {
-	case VersionCommand:
+	if action == VersionCommand {
 		fmt.Println("Version:", Version)
 
+		return
+	}
+
+	// fetch markdown files
+	courses, count := CrawlMarkdownFiles(files, maxErrors, tagsWanted, verbose)
+	fmt.Println("Processed", count, "markdown files.")
+
+	switch action {
 	case PrintCommand:
 		Print(count, courses, statesAllowed, printIndex, printNonIndex)
 
@@ -136,7 +145,7 @@ func main() {
 		Errors(count, courses)
 
 	case StatsCommand:
-		courses.Stats()
+		pkg.PrintStats(courses)
 
 	case CheckChapterOrderCommand:
 		CheckChapterOrder(count, courses)
@@ -156,7 +165,7 @@ func main() {
 			return
 		}
 
-		CheckLinks(count, courses, verbose)
+		CheckLinks(count, courses, checkExternal, verbose)
 
 	default:
 		panic("unknown command: " + string(action))
@@ -270,16 +279,12 @@ func CrawlMarkdownFiles(matches []string, maxErrors int, tagsWanted []string, ve
 }
 
 func Print(count int, courses pkg.Courses, statesAllowed map[pkg.State]struct{}, printIndex, printNonIndex bool) {
-	fmt.Println("Processed", count, "markdown files")
-
 	for _, course := range courses {
 		fmt.Print(course.String(statesAllowed, printIndex, printNonIndex))
 	}
 }
 
 func CheckChapterOrder(count int, courses pkg.Courses) {
-	fmt.Println("Processed", count, "markdown files")
-
 	for _, course := range courses {
 		issues := course.GetChapterOrderIssues()
 
@@ -297,8 +302,6 @@ func CheckChapterOrder(count int, courses pkg.Courses) {
 }
 
 func CheckPageOrder(count int, courses pkg.Courses) {
-	fmt.Println("Processed", count, "markdown files")
-
 	for _, course := range courses {
 		issues := course.GetPageOrderIssues()
 
@@ -314,14 +317,12 @@ func CheckPageOrder(count int, courses pkg.Courses) {
 	}
 }
 
-var linkRegex = regexp.MustCompile(`https?://([^//]+)/?.*`)
+var linkRegex = regexp.MustCompile(`https?://([^//]+)/?[^ ]*`)
 
-func CheckLinks(count int, courses pkg.Courses, verbose bool) {
-	fmt.Println("Processed", count, "markdown files")
-
+func CheckLinks(count int, courses pkg.Courses, checkExternal, verbose bool) {
 	fileLinks := make(map[string][]string)
-	internalLinks := sortedmap.New[string, []string]()
-	externalLinks := make(map[string]map[string][]string)
+	internalLinks := sm.New[string, []string]()
+	externalLinks := sm.New[string, *sm.SortedMap[string, []string]]()
 	for _, course := range courses {
 		for page, link := range course.GetLinks() {
 			matches := linkRegex.FindStringSubmatch(link)
@@ -342,20 +343,26 @@ func CheckLinks(count int, courses pkg.Courses, verbose bool) {
 
 			domain := matches[1]
 
-			if _, ok := externalLinks[domain]; !ok {
-				externalLinks[domain] = make(map[string][]string)
+			if !externalLinks.Has(domain) {
+				externalLinks.Set(domain, sm.New[string, []string]())
 			}
 
-			externalLinks[domain][link] = append(externalLinks[domain][link], page)
+			domainLinks := externalLinks.MustGet(domain)
+
+			if !domainLinks.Has(link) {
+				domainLinks.Set(link, []string{})
+			}
+
+			domainLinks.Set(link, append(domainLinks.MustGet(link), page))
 		}
 	}
 
 	checkInternalLinks(internalLinks, courses, verbose)
-	// checkExternalLinks(externalLinks)
+	checkExternalLinks(externalLinks, checkExternal, verbose)
 	checkFileLinks(fileLinks)
 }
 
-func checkInternalLinks(links *sortedmap.SortedMap[string, []string], courses pkg.Courses, verbose bool) {
+func checkInternalLinks(links *sm.SortedMap[string, []string], courses pkg.Courses, verbose bool) {
 	validInternalLinks := courses.GetValidInternalLinks()
 
 	notFound := 0
@@ -375,7 +382,11 @@ func checkInternalLinks(links *sortedmap.SortedMap[string, []string], courses pk
 		}
 	}
 
-	fmt.Println("Not found", notFound, "internal links")
+	if notFound > 0 {
+		fmt.Println("Not found", notFound, "internal links.")
+	} else {
+		fmt.Println("All internal links found.")
+	}
 
 	if verbose {
 		for link := range validInternalLinks {
@@ -384,18 +395,87 @@ func checkInternalLinks(links *sortedmap.SortedMap[string, []string], courses pk
 	}
 }
 
-// func checkExternalLinks(links map[string]map[string][]string) {
-// 	for domain, domainLinks := range links {
-// 		fmt.Println(domain)
-// 		for link, pages := range domainLinks {
-// 			fmt.Printf("  - %s (%d)\n", link, len(pages))
-// 		}
-// 		fmt.Println()
-// 	}
-// }
+var skipDomains = []string{
+	"codeforces.com",
+	"developer.android.com",
+	"leetcode.com",
+	"linux.die.net",
+	"marketplace.visualstudio.com",
+	"udemy.com",
+	"youtube.com",
+	"www.amazon.com",
+	"www.canva.com",
+	"www.cloudflare.com",
+	"www.java.com",
+	"www.linux.org",
+	"www.make.com",
+	"www.mercurial-scm.org",
+	"www.skillshare.com",
+	"www.softwaretestinghelp.com",
+	"www.whatsapp.com",
+	"www.youtube.com",
+}
+
+func checkExternalLinks(links *sm.SortedMap[string, *sm.SortedMap[string, []string]], checkExternal, verbose bool) {
+	if !checkExternal {
+		return
+	}
+
+	var wg sync.WaitGroup
+	var lock sync.Mutex
+
+	for domain, domainLinks := range links.Items() {
+		skip := false
+		for _, skipDomain := range skipDomains {
+			if domain == skipDomain {
+				skip = true
+				fmt.Println("Skipping domain:", domain)
+			}
+		}
+		if skip {
+			continue
+		}
+
+		wg.Add(1)
+
+		written := false
+		go func() {
+			defer wg.Done()
+
+			domainClient := pkg.NewDomainClient(domain, 5*time.Second, 3, 1*time.Second)
+
+			results := domainClient.FetchPages(domainLinks.Keys())
+			lock.Lock()
+			defer lock.Unlock()
+
+			for _, result := range results {
+				if result.Code == 200 {
+					continue
+				}
+
+				fmt.Printf("Domain: %s, Status code: %d, URL: %s\n", domain, result.Code, result.URL)
+				for _, content := range domainLinks.MustGet(result.URL) {
+					fmt.Println("  -", content)
+					written = true
+				}
+			}
+
+			if verbose {
+				fmt.Printf("Domain: %s, Count: %d\n\n", domain, domainLinks.Len())
+			}
+
+			if verbose || written {
+				fmt.Println()
+			}
+		}()
+	}
+
+	wg.Wait()
+}
 
 func checkFileLinks(links map[string][]string) {
 	found := 0
+	notFound := 0
 	for link, pages := range links {
 		filePath := "static/" + link
 		if _, err := os.Stat(filePath); err == nil {
@@ -412,17 +492,23 @@ func checkFileLinks(links map[string][]string) {
 			continue
 		}
 
+		notFound++
+
 		fmt.Printf("- %s NOT FOUND\n", link)
 		for _, page := range pages {
 			fmt.Printf("    - %s\n", page)
 		}
 	}
 
-	fmt.Println("Found", found, "file links")
+	if found > 0 {
+		fmt.Println("Found", found, "file links.")
+	}
+	if notFound > 0 {
+		fmt.Println("Not found", notFound, "file links.")
+	}
 }
 
 func Errors(count int, courses pkg.Courses) {
-	fmt.Println("Processed", count, "markdown files")
 
 	errorsFound := false
 

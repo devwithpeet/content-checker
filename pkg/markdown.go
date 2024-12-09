@@ -135,13 +135,13 @@ func getValueWithDefault(values map[string]string, key, defaultValue string) str
 	return defaultValue
 }
 
-var linkRegex = regexp.MustCompile(`\[(.*?)\]\((.*?)\)`)
+var linkRegex = regexp.MustCompile(`\[(.*?)\]\((.*?)\)[\. ]`)
 
 func getLinks(body string) map[string]string {
 	links := make(map[string]string)
 
 	for i, row := range strings.Split(body, EOL) {
-		finds := linkRegex.FindAllStringSubmatchIndex(row, -1)
+		finds := linkRegex.FindAllStringSubmatchIndex(row+" ", -1)
 		for _, found := range finds {
 			index := fmt.Sprintf("%d:%d", i+1, found[4])
 			link := row[found[4]:found[5]]

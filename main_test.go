@@ -27,6 +27,7 @@ func Test_getArgs(t *testing.T) {
 		wantCourseWanted  string
 		wantMaxErrors     int
 		wantTagsWanted    []string
+		wantCheckExternal bool
 	}{
 		{
 			name:              "version",
@@ -136,22 +137,37 @@ func Test_getArgs(t *testing.T) {
 			wantMaxErrors:     12,
 			wantTagsWanted:    []string{"foo", "bar"},
 		},
+		{
+			name:              "check-links . --check-external",
+			args:              []string{"", "check-links", ".", "--check-external"},
+			wantCommand:       CheckLinksCommand,
+			wantPath:          ".",
+			wantStatesAllowed: defaultStatesAllowed,
+			wantVerbose:       false,
+			wantPrintIndex:    false,
+			wantPrintNonIndex: true,
+			wantCourseWanted:  "",
+			wantMaxErrors:     -1,
+			wantTagsWanted:    []string{},
+			wantCheckExternal: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// execute
-			command, path, statesAllowed, verbose, printIndex, printNonIndex, courseWanted, maxErrors, tagsWanted := getArgs(tt.args)
+			command, path, statesAllowed, verbose, printIndex, printNonIndex, courseWanted, maxErrors, tagsWanted, checkExternal := getArgs(tt.args)
 
 			// verify
-			assert.Equal(t, tt.wantCommand, command)
-			assert.Equal(t, tt.wantPath, path)
-			assert.Equal(t, tt.wantStatesAllowed, statesAllowed)
-			assert.Equal(t, tt.wantVerbose, verbose)
-			assert.Equal(t, tt.wantPrintIndex, printIndex)
-			assert.Equal(t, tt.wantPrintNonIndex, printNonIndex)
-			assert.Equal(t, tt.wantCourseWanted, courseWanted)
-			assert.Equal(t, tt.wantMaxErrors, maxErrors)
-			assert.Equal(t, tt.wantTagsWanted, tagsWanted)
+			assert.Equal(t, tt.wantCommand, command, "command")
+			assert.Equal(t, tt.wantPath, path, "path")
+			assert.Equal(t, tt.wantStatesAllowed, statesAllowed, "statesAllowed")
+			assert.Equal(t, tt.wantVerbose, verbose, "verbose")
+			assert.Equal(t, tt.wantPrintIndex, printIndex, "printIndex")
+			assert.Equal(t, tt.wantPrintNonIndex, printNonIndex, "printNonIndex")
+			assert.Equal(t, tt.wantCourseWanted, courseWanted, "courseWanted")
+			assert.Equal(t, tt.wantMaxErrors, maxErrors, "maxErrors")
+			assert.Equal(t, tt.wantTagsWanted, tagsWanted, "tagsWanted")
+			assert.Equal(t, tt.wantCheckExternal, checkExternal, "checkExternal")
 		})
 	}
 
