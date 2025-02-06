@@ -75,6 +75,7 @@ const (
 	DesktopDevelopers Audience = "desktop developers"
 	GameDevelopers    Audience = "game developers"
 	SysAdmins         Audience = "sysadmins"
+	DataEngineers     Audience = "data engineers"
 )
 
 var validAudiences = map[Audience]struct{}{
@@ -89,6 +90,7 @@ var validAudiences = map[Audience]struct{}{
 	DesktopDevelopers: {},
 	GameDevelopers:    {},
 	SysAdmins:         {},
+	DataEngineers:     {},
 }
 
 type Importance string
