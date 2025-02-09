@@ -145,6 +145,7 @@ func getLinks(body string) map[string]string {
 		for _, found := range finds {
 			index := fmt.Sprintf("%d:%d", i+1, found[4])
 			link := row[found[4]:found[5]]
+			link = strings.TrimRight(link, ")")
 			if strings.Index(link, "?") > 0 {
 				link = link[:strings.Index(link, "?")]
 			}
