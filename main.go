@@ -509,8 +509,8 @@ func checkFileLinks(links map[string][]string) {
 }
 
 func Errors(count int, courses pkg.Courses) {
-
-	errorsFound := false
+	errorsFound := 0
+	files := make(map[string]struct{})
 
 	for _, course := range courses {
 		errors := course.GetErrors()
@@ -518,12 +518,17 @@ func Errors(count int, courses pkg.Courses) {
 			continue
 		}
 
-		errorsFound = true
+		errorsFound += len(errors)
 
-		fmt.Println(strings.Join(errors, "\n"))
+		for _, str := range errors {
+			files[strings.Split(str, " - ")[0]] = struct{}{}
+			fmt.Println(str)
+		}
 	}
 
-	if errorsFound {
+	fmt.Println("Found", errorsFound, "errors in", len(files), "files.")
+
+	if errorsFound > 0 {
 		os.Exit(1)
 	}
 }
